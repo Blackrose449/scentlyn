@@ -112,7 +112,7 @@ export async function startStkPush(args: {
       PhoneNumber: args.phone,
       CallBackURL: callbackUrl,
       AccountReference: args.accountReference.slice(0, 12),
-      TransactionDesc: args.description.slice(0, raw13()),
+      TransactionDesc: args.description.slice(0, 60),
     }),
   });
 
@@ -141,10 +141,6 @@ export async function startStkPush(args: {
     customerMessage: json.CustomerMessage ?? "Check your phone to complete payment.",
     simulated: false,
   };
-}
-
-function raw13() {
-  return 13;
 }
 
 export async function startCardCharge(args: {
