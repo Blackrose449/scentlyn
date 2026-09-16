@@ -1,15 +1,16 @@
 /**
  * Payment provider integrations (server-only).
  *
- * M-Pesa Daraja and Flutterwave calls live here. Where real credentials are
- * not yet available the network call is stubbed behind a clearly marked TODO,
- * but the request/response shapes match the live APIs so credentials can be
- * dropped in without restructuring callers.
+ * M-Pesa Daraja and Pesapal (API v3) calls live here. Where real credentials
+ * are not yet available the network call is stubbed behind a clearly marked
+ * TODO, but the request/response shapes match the live APIs so credentials can
+ * be dropped in without restructuring callers.
  *
  * Required Supabase secrets:
  *   MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, MPESA_SHORTCODE,
  *   MPESA_PASSKEY, MPESA_ENV ("sandbox" | "production"), MPESA_CALLBACK_URL
- *   FLUTTERWAVE_SECRET_KEY, FLUTTERWAVE_WEBHOOK_HASH, PUBLIC_SITE_URL
+ *   PESAPAL_CONSUMER_KEY, PESAPAL_CONSUMER_SECRET,
+ *   PESAPAL_ENV ("sandbox" | "production"), PESAPAL_IPN_ID, PUBLIC_SITE_URL
  */
 
 export type StkPushResult = {
