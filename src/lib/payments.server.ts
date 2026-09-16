@@ -25,7 +25,9 @@ export type CardInitResult = {
   ok: boolean;
   checkoutUrl: string | null;
   reference: string;
-  provider: "flutterwave";
+  /** Pesapal's own tracking id for the transaction, when available. */
+  trackingId: string | null;
+  provider: "pesapal";
   simulated: boolean;
 };
 
