@@ -10,9 +10,9 @@ import { createFileRoute } from "@tanstack/react-router";
  */
 
 type IpnPayload = {
-  OrderTrackingId?: string;
-  OrderMerchantReference?: string;
-  OrderNotificationType?: string;
+  OrderTrackingId?: string | undefined;
+  OrderMerchantReference?: string | undefined;
+  OrderNotificationType?: string | undefined;
 };
 
 async function handleIpn(request: Request) {
