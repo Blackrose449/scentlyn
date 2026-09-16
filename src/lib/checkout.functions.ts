@@ -266,8 +266,12 @@ export const startCardPayment = createServerFn({ method: "POST" })
       .from("orders")
       .update({
         payment_provider: result.provider,
-        payment_reference: result.reference,
-        payment_meta: { card_simulated: result.simulated },
+        payment_reference: result.trackingId ?? result.reference,
+        payment_meta: {
+          card_simulated: result.simulated,
+          pesapal_tracking_id: result.trackingId,
+          merchant_reference: result.reference,
+        },
       })
       .eq("id", order.id);
 
