@@ -1,15 +1,16 @@
 /**
  * Payment provider integrations (server-only).
  *
- * M-Pesa Daraja and Flutterwave calls live here. Where real credentials are
- * not yet available the network call is stubbed behind a clearly marked TODO,
- * but the request/response shapes match the live APIs so credentials can be
- * dropped in without restructuring callers.
+ * M-Pesa Daraja and Pesapal (API v3) calls live here. Where real credentials
+ * are not yet available the network call is stubbed behind a clearly marked
+ * TODO, but the request/response shapes match the live APIs so credentials can
+ * be dropped in without restructuring callers.
  *
  * Required Supabase secrets:
  *   MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, MPESA_SHORTCODE,
  *   MPESA_PASSKEY, MPESA_ENV ("sandbox" | "production"), MPESA_CALLBACK_URL
- *   FLUTTERWAVE_SECRET_KEY, FLUTTERWAVE_WEBHOOK_HASH, PUBLIC_SITE_URL
+ *   PESAPAL_CONSUMER_KEY, PESAPAL_CONSUMER_SECRET,
+ *   PESAPAL_ENV ("sandbox" | "production"), PESAPAL_IPN_ID, PUBLIC_SITE_URL
  */
 
 export type StkPushResult = {
@@ -24,7 +25,9 @@ export type CardInitResult = {
   ok: boolean;
   checkoutUrl: string | null;
   reference: string;
-  provider: "flutterwave";
+  /** Pesapal's own tracking id for the transaction, when available. */
+  trackingId: string | null;
+  provider: "pesapal";
   simulated: boolean;
 };
 
@@ -143,6 +146,24 @@ export async function startStkPush(args: {
   };
 }
 
+function pesapalBaseUrl(): string {
+  return process.env["PESAPAL_ENV"] === "production"
+    ? "https://pay.pesapal.com/v3"
+    : "https://cybqa.pesapal.com/pesapalv3";
+}
+
+/** Pesapal API v3 bearer token (valid ~5 minutes). */
+async function getPesapalToken(key: string, secret: string): Promise<string> {
+  const res = await fetch(`${pesapalBaseUrl()}/api/Auth/RequestToken`, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify({ consumer_key: key, consumer_secret: secret }),
+  });
+  const json = (await res.json()) as { token?: string; error?: unknown };
+  if (!res.ok || !json.token) throw new Error("Pesapal auth failed");
+  return json.token;
+}
+
 export async function startCardCharge(args: {
   reference: string;
   amount: number;
@@ -151,70 +172,149 @@ export async function startCardCharge(args: {
   customerPhone: string;
   redirectUrl: string;
 }): Promise<CardInitResult> {
-  const secretKey = process.env["FLUTTERWAVE_SECRET_KEY"];
+  const key = process.env["PESAPAL_CONSUMER_KEY"];
+  const secret = process.env["PESAPAL_CONSUMER_SECRET"];
+  const ipnId = process.env["PESAPAL_IPN_ID"];
 
-  // TODO: remove this simulation branch once the Flutterwave secret is stored.
-  if (!secretKey) {
+  // TODO: remove this simulation branch once the Pesapal credentials and the
+  // registered IPN id are stored as secrets.
+  if (!key || !secret || !ipnId) {
     return {
       ok: true,
       checkoutUrl: null,
       reference: args.reference,
-      provider: "flutterwave",
+      trackingId: null,
+      provider: "pesapal",
       simulated: true,
     };
   }
 
-  const res = await fetch("https://api.flutterwave.com/v3/payments", {
+  const token = await getPesapalToken(key, secret);
+  const [firstName, ...rest] = args.customerName.trim().split(/\s+/);
+
+  const res = await fetch(`${pesapalBaseUrl()}/api/Transactions/SubmitOrderRequest`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${secretKey}`,
+      Authorization: `Bearer ${token}`,
       "content-type": "application/json",
+      accept: "application/json",
     },
     body: JSON.stringify({
-      tx_ref: args.reference,
-      amount: args.amount,
+      id: args.reference,
       currency: "KES",
-      redirect_url: args.redirectUrl,
-      payment_options: "card",
-      customer: {
-        email: args.customerEmail,
-        phonenumber: args.customerPhone,
-        name: args.customerName,
+      amount: args.amount,
+      description: `Scentlyn order ${args.reference}`.slice(0, 100),
+      callback_url: args.redirectUrl,
+      notification_id: ipnId,
+      billing_address: {
+        email_address: args.customerEmail,
+        phone_number: args.customerPhone,
+        first_name: firstName ?? "Scentlyn",
+        last_name: rest.join(" ") || "Customer",
       },
-      customizations: { title: "Scentlyn", description: "Scentlyn order payment" },
     }),
   });
 
-  const json = (await res.json()) as { status?: string; data?: { link?: string } };
-  if (!res.ok || json.status !== "success" || !json.data?.link) {
-    console.error("Flutterwave init failed", res.status);
+  const json = (await res.json()) as {
+    order_tracking_id?: string;
+    merchant_reference?: string;
+    redirect_url?: string;
+    status?: string;
+    error?: { message?: string } | null;
+  };
+
+  if (!res.ok || !json.redirect_url) {
+    console.error("Pesapal order submit failed", res.status, json.error?.message);
     return {
       ok: false,
       checkoutUrl: null,
       reference: args.reference,
-      provider: "flutterwave",
+      trackingId: null,
+      provider: "pesapal",
       simulated: false,
     };
   }
 
   return {
     ok: true,
-    checkoutUrl: json.data.link,
-    reference: args.reference,
-    provider: "flutterwave",
+    checkoutUrl: json.redirect_url,
+    reference: json.merchant_reference ?? args.reference,
+    trackingId: json.order_tracking_id ?? null,
+    provider: "pesapal",
     simulated: false,
   };
 }
 
-/** Verifies a Flutterwave webhook using the configured secret hash. */
-export function verifyFlutterwaveSignature(signature: string | null): boolean {
-  const expected = process.env["FLUTTERWAVE_WEBHOOK_HASH"];
-  // TODO: once the hash secret is stored this returns a real comparison only.
-  if (!expected) return true;
-  if (!signature || signature.length !== expected.length) return false;
-  let diff = 0;
-  for (let i = 0; i < expected.length; i += 1) {
-    diff |= expected.charCodeAt(i) ^ signature.charCodeAt(i);
+export type PesapalStatus = {
+  ok: boolean;
+  paid: boolean;
+  statusText: string | null;
+  amount: number | null;
+  currency: string | null;
+  confirmationCode: string | null;
+  paymentMethod: string | null;
+  merchantReference: string | null;
+};
+
+/**
+ * Pesapal IPNs carry no signature — they only carry an OrderTrackingId, so the
+ * outcome MUST be confirmed by calling GetTransactionStatus server-side.
+ */
+export async function getPesapalTransactionStatus(
+  orderTrackingId: string,
+): Promise<PesapalStatus> {
+  const key = process.env["PESAPAL_CONSUMER_KEY"];
+  const secret = process.env["PESAPAL_CONSUMER_SECRET"];
+
+  const empty: PesapalStatus = {
+    ok: false,
+    paid: false,
+    statusText: null,
+    amount: null,
+    currency: null,
+    confirmationCode: null,
+    paymentMethod: null,
+    merchantReference: null,
+  };
+
+  // TODO: remove once Pesapal credentials are stored; without them we cannot
+  // verify an IPN, so nothing is ever marked paid.
+  if (!key || !secret) return empty;
+
+  const token = await getPesapalToken(key, secret);
+  const res = await fetch(
+    `${pesapalBaseUrl()}/api/Transactions/GetTransactionStatus?orderTrackingId=${encodeURIComponent(orderTrackingId)}`,
+    {
+      headers: { Authorization: `Bearer ${token}`, accept: "application/json" },
+    },
+  );
+
+  const json = (await res.json()) as {
+    payment_status_description?: string;
+    status_code?: number;
+    amount?: number;
+    currency?: string;
+    confirmation_code?: string;
+    payment_method?: string;
+    merchant_reference?: string;
+  };
+
+  if (!res.ok) {
+    console.error("Pesapal status lookup failed", res.status);
+    return empty;
   }
-  return diff === 0;
+
+  return {
+    ok: true,
+    // status_code 1 = COMPLETED, 2 = FAILED, 0 = INVALID, 3 = REVERSED
+    paid:
+      json.status_code === 1 ||
+      json.payment_status_description?.toUpperCase() === "COMPLETED",
+    statusText: json.payment_status_description ?? null,
+    amount: typeof json.amount === "number" ? json.amount : null,
+    currency: json.currency ?? null,
+    confirmationCode: json.confirmation_code ?? null,
+    paymentMethod: json.payment_method ?? null,
+    merchantReference: json.merchant_reference ?? null,
+  };
 }
