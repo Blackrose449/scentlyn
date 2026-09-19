@@ -1,7 +1,6 @@
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { EmptyProducts, ProductCard } from "@/components/storefront/product-card";
 import { Button } from "@/components/ui/button";
 import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from "@/components/ui/select";
@@ -11,7 +10,7 @@ import { CATEGORY_LABELS } from "@/lib/storefront";
 const searchSchema=z.object({subcategory:z.string().optional(),sort:z.enum(["featured","price-low","price-high","newest"]).catch("featured")});
 const categoryQuery=(slug:string)=>queryOptions({queryKey:["category",slug],queryFn:()=>getCategoryPage({data:{slug}}),staleTime:60_000});
 export const Route=createFileRoute("/category/$slug")({
-  validateSearch:zodValidator(searchSchema),
+  validateSearch:(search)=>searchSchema.parse(search),
   loader:({context,params})=>context.queryClient.ensureQueryData(categoryQuery(params.slug)),
   head:({params,loaderData})=>{const label=loaderData?.category.name??CATEGORY_LABELS[params.slug]??"Collection";return {meta:[{title:`${label} essentials — Scentlyn`},{name:"description",content:`Shop ${label.toLowerCase()} essentials from Scentlyn, delivered across Kenya.`},{property:"og:title",content:`${label} essentials — Scentlyn`},{property:"og:description",content:`Shop quality ${label.toLowerCase()} essentials delivered across Kenya.`},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}],links:[{rel:"canonical",href:`/category/${params.slug}`} ]}},
   component:CategoryPage,errorComponent:()=> <CategoryMessage title="This collection couldn't load"/>,notFoundComponent:()=> <CategoryMessage title="Collection not found"/>,

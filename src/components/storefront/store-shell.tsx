@@ -48,7 +48,7 @@ export function StoreFooter() {
   return <footer className="bg-primary text-primary-foreground">
     <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.5fr]">
       <div><div className="font-display text-4xl italic">Scentlyn<span className="text-accent">✦</span></div><p className="mt-3 max-w-xs text-sm text-primary-foreground/75">Where freshness meets quality</p><div className="mt-5 flex gap-3"><Instagram/><span className="font-bold">TikTok</span><Facebook/><MessageCircle/></div></div>
-      <FooterLinks title="Shop" links={CATEGORY_ORDER.map((slug) => ({label:CATEGORY_LABELS[slug],slug}))}/>
+      <FooterLinks title="Shop" links={CATEGORY_ORDER.map((slug) => ({label:CATEGORY_LABELS[slug] ?? slug,slug}))}/>
       <div><h3 className="font-bold">Help</h3><ul className="mt-3 space-y-2 text-sm text-primary-foreground/75"><li>Track order</li><li>FAQs</li><li>Shipping & delivery</li><li>Returns</li></ul></div>
       <div><h3 className="font-bold">About</h3><ul className="mt-3 space-y-2 text-sm text-primary-foreground/75"><li>Our story</li><li>Contact us</li></ul></div>
       <div><h3 className="font-bold">Join our community</h3><form className="mt-3 flex" onSubmit={(event) => event.preventDefault()}><input aria-label="Email address" type="email" placeholder="Your email address" className="min-w-0 flex-1 rounded-l-full bg-card px-4 py-2.5 text-sm text-card-foreground outline-none"/><Button type="submit" className="rounded-l-none rounded-r-full bg-accent text-accent-foreground hover:bg-accent/90">Join</Button></form><p className="mt-2 text-xs text-primary-foreground/65">Special offers, new arrivals and more.</p></div>
