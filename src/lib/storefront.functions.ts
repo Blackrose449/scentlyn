@@ -42,8 +42,8 @@ export const getStorefrontHome = createServerFn({ method: "GET" }).handler(async
   const settings: StoreSettings = {};
   for (const setting of settingsResult.data ?? []) settings[setting.key] = setting.value;
   const products = (productsResult.data ?? []).map(normalizeProduct);
-  const featuredIds = Array.isArray(settings.featured_product_ids)
-    ? settings.featured_product_ids.filter((id): id is string => typeof id === "string")
+  const featuredIds = Array.isArray(settings["featured_product_ids"])
+    ? settings["featured_product_ids"].filter((id): id is string => typeof id === "string")
     : [];
   const featured = featuredIds.length
     ? featuredIds.map((id) => products.find((p) => p.id === id)).filter((p): p is StoreProduct => Boolean(p))
