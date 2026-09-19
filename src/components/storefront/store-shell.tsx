@@ -21,7 +21,7 @@ export function StoreHeader() {
         <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu" onClick={() => setOpen(true)}><Menu/></Button>
         <Link to="/" className="justify-self-center font-display text-4xl italic text-primary lg:justify-self-start">Scentlyn<span className="text-accent">✦</span></Link>
         <nav className="hidden items-center justify-center gap-9 lg:flex" aria-label="Main navigation">
-          {CATEGORY_ORDER.map((slug) => <Link key={slug} to="/category/$slug" params={{slug}} className="text-xs font-bold uppercase text-primary transition-colors hover:text-accent" activeProps={{className:"text-accent"}}>{CATEGORY_LABELS[slug]}</Link>)}
+          {CATEGORY_ORDER.map((slug) => <Link key={slug} to="/category/$slug" params={{slug}} search={{sort:"featured"}} className="text-xs font-bold uppercase text-primary transition-colors hover:text-accent" activeProps={{className:"text-accent"}}>{CATEGORY_LABELS[slug]}</Link>)}
         </nav>
         <div className="flex items-center justify-end gap-0.5">
           <Button variant="ghost" size="icon" aria-label="Search products"><Search/></Button>
@@ -36,7 +36,7 @@ export function StoreHeader() {
       <aside className="h-full w-[82%] max-w-xs bg-secondary p-5 shadow-xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between"><span className="font-display text-3xl italic">Scentlyn</span><Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Close menu"><X/></Button></div>
         <nav className="mt-10 grid gap-1" aria-label="Mobile navigation">
-          {CATEGORY_ORDER.map((slug) => <Link key={slug} to="/category/$slug" params={{slug}} onClick={() => setOpen(false)} className="border-b border-border py-4 font-display text-2xl">{CATEGORY_LABELS[slug]}</Link>)}
+          {CATEGORY_ORDER.map((slug) => <Link key={slug} to="/category/$slug" params={{slug}} search={{sort:"featured"}} onClick={() => setOpen(false)} className="border-b border-border py-4 font-display text-2xl">{CATEGORY_LABELS[slug]}</Link>)}
           <Link to="/cart" onClick={() => setOpen(false)} className="border-b border-border py-4 font-display text-2xl">Your cart ({count})</Link>
         </nav>
       </aside>
@@ -56,6 +56,6 @@ export function StoreFooter() {
     <div className="mx-auto flex max-w-7xl flex-col gap-2 border-t border-primary-foreground/20 px-5 py-5 text-xs text-primary-foreground/65 sm:flex-row sm:justify-between"><span>© 2026 Scentlyn. All rights reserved.</span><span>A fresher, brighter home awaits · Kenya 🇰🇪</span></div>
   </footer>;
 }
-function FooterLinks({title,links}:{title:string;links:{label:string;slug:string}[]}) { return <div><h3 className="font-bold">{title}</h3><ul className="mt-3 space-y-2 text-sm text-primary-foreground/75">{links.map((item)=><li key={item.slug}><Link to="/category/$slug" params={{slug:item.slug}} className="hover:text-primary-foreground">{item.label}</Link></li>)}</ul></div>; }
+function FooterLinks({title,links}:{title:string;links:{label:string;slug:string}[]}) { return <div><h3 className="font-bold">{title}</h3><ul className="mt-3 space-y-2 text-sm text-primary-foreground/75">{links.map((item)=><li key={item.slug}><Link to="/category/$slug" params={{slug:item.slug}} search={{sort:"featured"}} className="hover:text-primary-foreground">{item.label}</Link></li>)}</ul></div>; }
 
 export function StoreLayout({children}:{children:React.ReactNode}) { return <div className="min-h-screen bg-background text-foreground"><StoreHeader/><main>{children}</main><StoreFooter/></div>; }
