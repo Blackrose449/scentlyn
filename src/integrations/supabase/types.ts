@@ -336,6 +336,7 @@ export type Database = {
       }
       products: {
         Row: {
+          archived_at: string | null
           base_price: number
           brand: string | null
           category_id: string | null
@@ -346,10 +347,12 @@ export type Database = {
           is_featured: boolean
           name: string
           status: string
+          stock_quantity: number
           subcategory: string | null
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           base_price?: number
           brand?: string | null
           category_id?: string | null
@@ -360,10 +363,12 @@ export type Database = {
           is_featured?: boolean
           name: string
           status?: string
+          stock_quantity?: number
           subcategory?: string | null
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           base_price?: number
           brand?: string | null
           category_id?: string | null
@@ -374,6 +379,7 @@ export type Database = {
           is_featured?: boolean
           name?: string
           status?: string
+          stock_quantity?: number
           subcategory?: string | null
           updated_at?: string
         }
@@ -416,6 +422,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_exists: { Args: never; Returns: boolean }
+      claim_first_admin: { Args: never; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
