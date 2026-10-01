@@ -62,6 +62,11 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-product: var(--product);
+  --color-status-pending: var(--status-pending);
+  --color-status-paid: var(--status-paid);
+  --color-status-packing: var(--status-packing);
+  --color-status-delivered: var(--status-delivered);
+  --color-status-cancelled: var(--status-cancelled);
 }
 
 :root {
@@ -86,6 +91,11 @@
   --input: oklch(0.83 0.02 84);
   --ring: oklch(0.63 0.083 72.5);
   --product: oklch(1 0 0);
+  --status-pending: oklch(0.62 0.04 251.4);
+  --status-paid: oklch(0.55 0.11 150);
+  --status-packing: oklch(0.63 0.083 72.5);
+  --status-delivered: oklch(0.45 0.09 240);
+  --status-cancelled: oklch(0.52 0.12 24);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
