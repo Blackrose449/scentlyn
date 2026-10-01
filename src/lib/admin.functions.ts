@@ -4,10 +4,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database, Json } from "@/integrations/supabase/types";
 
-type Supa = Parameters<typeof identity>[0];
-function identity(client: { from: unknown }) {
-  return client;
-}
+type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
 
 export type AdminProductRow = Database["public"]["Tables"]["products"]["Row"] & {
   category: { id: string; name: string; slug: string } | null;
@@ -29,11 +26,9 @@ const orderSelect =
   "*,customer:customers(id,full_name,phone,email),zone:delivery_zones(zone_name,delivery_fee),items:order_items(*)";
 
 async function assertAdmin(context: { supabase: unknown; userId: string }) {
-  const supabase = context.supabase as {
-    rpc: (fn: "is_admin", args: { _user_id: string }) => Promise<{ data: boolean | null; error: unknown }>;
-  };
-  const { data, error } = await supabase.rpc("is_admin", { _user_id: context.userId });
-  if (error || !data) throw new Error("Forbidden: admin access required");
+  const rpc = (context.supabase as { rpc: RpcCaller }).rpc.bind(context.supabase) as RpcCaller;
+  const { data, error } = await rpc("is_admin", { _user_id: context.userId });
+  if (error || data !== true) throw new Error("Forbidden: admin access required");
 }
 
 /* ---------------------------------- access --------------------------------- */
@@ -41,24 +36,26 @@ async function assertAdmin(context: { supabase: unknown; userId: string }) {
 export const getAdminAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    const rpc = (context.supabase as unknown as { rpc: RpcCaller }).rpc.bind(context.supabase) as RpcCaller;
     const [isAdminResult, existsResult] = await Promise.all([
-      context.supabase.rpc("is_admin", { _user_id: context.userId }),
-      context.supabase.rpc("admin_exists" as never),
+      rpc("is_admin", { _user_id: context.userId }),
+      rpc("admin_exists"),
     ]);
     return {
       userId: context.userId,
       email: (context.claims as { email?: string }).email ?? null,
       isAdmin: isAdminResult.data === true,
-      adminExists: (existsResult.data as boolean | null) === true,
+      adminExists: existsResult.data === true,
     };
   });
 
 export const claimFirstAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase.rpc("claim_first_admin" as never);
+    const rpc = (context.supabase as unknown as { rpc: RpcCaller }).rpc.bind(context.supabase) as RpcCaller;
+    const { data, error } = await rpc("claim_first_admin");
     if (error) throw new Error(error.message);
-    return { isAdmin: (data as boolean | null) === true };
+    return { isAdmin: data === true };
   });
 
 /* --------------------------------- overview -------------------------------- */
@@ -484,5 +481,3 @@ export const saveDeliveryZone = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
-
-export type AdminSupabase = Supa;
