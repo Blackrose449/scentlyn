@@ -10,17 +10,34 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
+import { Route as AdminCustomersIndexRouteImport } from './routes/admin/customers.index'
+import { Route as AdminCustomersCustomerIdRouteImport } from './routes/admin/customers.$customerId'
+import { Route as AdminOrdersIndexRouteImport } from './routes/admin/orders.index'
+import { Route as AdminOrdersOrderIdRouteImport } from './routes/admin/orders.$orderId'
 import { Route as ApiPublicMpesaCallbackRouteImport } from './routes/api/public/mpesa-callback'
 import { Route as ApiPublicPaymentWebhookRouteImport } from './routes/api/public/payment-webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -32,6 +49,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const CategorySlugRoute = CategorySlugRouteImport.update({
   id: '/category/$slug',
@@ -48,6 +70,27 @@ const ProductSlugRoute = ProductSlugRouteImport.update({
   path: '/product/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCustomersIndexRoute = AdminCustomersIndexRouteImport.update({
+  id: '/customers/',
+  path: '/customers/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminCustomersCustomerIdRoute =
+  AdminCustomersCustomerIdRouteImport.update({
+    id: '/customers/$customerId',
+    path: '/customers/$customerId',
+    getParentRoute: () => AdminRouteRoute,
+  } as any)
+const AdminOrdersIndexRoute = AdminOrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminOrdersOrderIdRoute = AdminOrdersOrderIdRouteImport.update({
+  id: '/orders/$orderId',
+  path: '/orders/$orderId',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const ApiPublicMpesaCallbackRoute = ApiPublicMpesaCallbackRouteImport.update({
   id: '/api/public/mpesa-callback',
   path: '/api/public/mpesa-callback',
@@ -61,70 +104,112 @@ const ApiPublicPaymentWebhookRoute = ApiPublicPaymentWebhookRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/category/$slug': typeof CategorySlugRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/admin/': typeof AdminIndexRoute
+  '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
+  '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/api/public/mpesa-callback': typeof ApiPublicMpesaCallbackRoute
   '/api/public/payment-webhook': typeof ApiPublicPaymentWebhookRoute
+  '/admin/customers/': typeof AdminCustomersIndexRoute
+  '/admin/orders/': typeof AdminOrdersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/category/$slug': typeof CategorySlugRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/admin': typeof AdminIndexRoute
+  '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
+  '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/api/public/mpesa-callback': typeof ApiPublicMpesaCallbackRoute
   '/api/public/payment-webhook': typeof ApiPublicPaymentWebhookRoute
+  '/admin/customers': typeof AdminCustomersIndexRoute
+  '/admin/orders': typeof AdminOrdersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/category/$slug': typeof CategorySlugRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/admin/': typeof AdminIndexRoute
+  '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
+  '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/api/public/mpesa-callback': typeof ApiPublicMpesaCallbackRoute
   '/api/public/payment-webhook': typeof ApiPublicPaymentWebhookRoute
+  '/admin/customers/': typeof AdminCustomersIndexRoute
+  '/admin/orders/': typeof AdminOrdersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/auth'
     | '/cart'
     | '/checkout'
     | '/category/$slug'
     | '/order/$orderId'
     | '/product/$slug'
+    | '/admin/'
+    | '/admin/customers/$customerId'
+    | '/admin/orders/$orderId'
     | '/api/public/mpesa-callback'
     | '/api/public/payment-webhook'
+    | '/admin/customers/'
+    | '/admin/orders/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/cart'
     | '/checkout'
     | '/category/$slug'
     | '/order/$orderId'
     | '/product/$slug'
+    | '/admin'
+    | '/admin/customers/$customerId'
+    | '/admin/orders/$orderId'
     | '/api/public/mpesa-callback'
     | '/api/public/payment-webhook'
+    | '/admin/customers'
+    | '/admin/orders'
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/auth'
     | '/cart'
     | '/checkout'
     | '/category/$slug'
     | '/order/$orderId'
     | '/product/$slug'
+    | '/admin/'
+    | '/admin/customers/$customerId'
+    | '/admin/orders/$orderId'
     | '/api/public/mpesa-callback'
     | '/api/public/payment-webhook'
+    | '/admin/customers/'
+    | '/admin/orders/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   CategorySlugRoute: typeof CategorySlugRoute
@@ -143,6 +228,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cart': {
       id: '/cart'
       path: '/cart'
@@ -156,6 +255,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/category/$slug': {
       id: '/category/$slug'
@@ -178,6 +284,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/customers/': {
+      id: '/admin/customers/'
+      path: '/customers'
+      fullPath: '/admin/customers/'
+      preLoaderRoute: typeof AdminCustomersIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/customers/$customerId': {
+      id: '/admin/customers/$customerId'
+      path: '/customers/$customerId'
+      fullPath: '/admin/customers/$customerId'
+      preLoaderRoute: typeof AdminCustomersCustomerIdRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/orders/': {
+      id: '/admin/orders/'
+      path: '/orders'
+      fullPath: '/admin/orders/'
+      preLoaderRoute: typeof AdminOrdersIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/orders/$orderId': {
+      id: '/admin/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/admin/orders/$orderId'
+      preLoaderRoute: typeof AdminOrdersOrderIdRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/api/public/mpesa-callback': {
       id: '/api/public/mpesa-callback'
       path: '/api/public/mpesa-callback'
@@ -195,8 +329,30 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminCustomersCustomerIdRoute: typeof AdminCustomersCustomerIdRoute
+  AdminOrdersOrderIdRoute: typeof AdminOrdersOrderIdRoute
+  AdminCustomersIndexRoute: typeof AdminCustomersIndexRoute
+  AdminOrdersIndexRoute: typeof AdminOrdersIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+  AdminCustomersCustomerIdRoute: AdminCustomersCustomerIdRoute,
+  AdminOrdersOrderIdRoute: AdminOrdersOrderIdRoute,
+  AdminCustomersIndexRoute: AdminCustomersIndexRoute,
+  AdminOrdersIndexRoute: AdminOrdersIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   CategorySlugRoute: CategorySlugRoute,
