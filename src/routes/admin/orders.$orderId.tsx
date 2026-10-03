@@ -23,7 +23,8 @@ import { money } from "@/lib/storefront";
 
 export const Route = createFileRoute("/admin/orders/$orderId")({ component: OrderDetailPage });
 
-type Patch = { status?: (typeof ORDER_STATUSES)[number]; payment_status?: "pending" | "paid" | "failed" };
+type OrderStatus = (typeof ORDER_STATUSES)[number];
+type Patch = { status?: OrderStatus; payment_status?: "pending" | "paid" | "failed" };
 
 function OrderDetailPage() {
   const { orderId } = Route.useParams();
@@ -55,7 +56,7 @@ function OrderDetailPage() {
   if (isLoading) return <Skeleton className="h-96 w-full" />;
   if (!order) return <p className="text-sm text-muted-foreground">Order not found.</p>;
 
-  const flow: Patch["status"][] = ["packing", "paid", "delivered"];
+  const flow: OrderStatus[] = ["packing", "paid", "delivered"];
 
   return (
     <>
@@ -146,7 +147,7 @@ function OrderDetailPage() {
                   setConfirm({
                     title: "Mark as paid manually?",
                     body: "Only do this if you have confirmed the money arrived (for example via your M-Pesa statement).",
-                    patch: { payment_status: "paid", status: order.status === "pending" ? "paid" : order.status as Patch["status"] },
+                    patch: { payment_status: "paid", status: (order.status === "pending" ? "paid" : order.status) as OrderStatus },
                   })
                 }
               >
