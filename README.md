@@ -96,3 +96,13 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Netlify deployment
+
+The committed `netlify.toml` builds the app for Netlify and publishes `dist`, including the generated server-rendering function. Deploy the current repository revision; an older deployment without this configuration cannot serve the storefront.
+
+Public catalogue queries use `SUPABASE_URL` and `SUPABASE_ANON_KEY` or `SUPABASE_PUBLISHABLE_KEY` when configured for the function runtime. Otherwise, they use the public `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` settings embedded by Vite at build time, just like the browser client. This fallback preserves read-only access under the existing database permissions; it does not use a service-role key.
+
+Checkout and administrative operations still require their existing server-only credentials in Netlify's function runtime. Never prefix private credentials with `VITE_`.
+
+Netlify access protection is independent of the app. If visitors receive a Netlify login prompt or HTTP 401 before the storefront loads, review the site's access-protection settings in the Netlify dashboard.

@@ -4,8 +4,8 @@ import { z } from "zod";
 import type { Database, Json } from "@/integrations/supabase/types";
 
 function publicClient() {
-  const url = process.env["SUPABASE_URL"];
-  const key = process.env["SUPABASE_ANON_KEY"] ?? process.env["SUPABASE_PUBLISHABLE_KEY"];
+  const url = process.env["SUPABASE_URL"] || import.meta.env["VITE_SUPABASE_URL"];
+  const key = process.env["SUPABASE_ANON_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"] || import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
   if (!url || !key) throw new Error("Store catalogue is unavailable.");
   return createClient<Database>(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
