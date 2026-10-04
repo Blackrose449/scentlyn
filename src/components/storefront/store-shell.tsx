@@ -59,7 +59,7 @@ export function StoreFooter() {
     { href: settingText(settings,"social_instagram"), label:"Instagram", node:<Instagram/> },
     { href: settingText(settings,"social_tiktok"), label:"TikTok", node:<span className="font-bold">TikTok</span> },
     { href: settingText(settings,"social_facebook"), label:"Facebook", node:<Facebook/> },
-    { href: whatsapp ? `https://wa.me/${whatsapp.replace(/[^0-9]/g,"")}` : "", label:"WhatsApp", node:<MessageCircle/> },
+    { href: whatsapp ? `https://wa.me/${whatsapp.replace(/[^0-9]/g,"").replace(/^0/,"254")}` : "", label:"WhatsApp", node:<MessageCircle/> },
   ];
   return <footer className="bg-primary text-primary-foreground">
     <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.5fr]">
