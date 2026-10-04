@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Lovable's Vite config defaults Nitro to Cloudflare; build for Netlify instead.
+  NITRO_PRESET = "netlify"
+
+[dev]
+  command = "npm run dev"
+  targetPort = 8080
