@@ -247,6 +247,7 @@ function StoreTab({ data }: { data: Data }) {
   const keys = [
     ["store_phone", "Phone number"],
     ["store_whatsapp", "WhatsApp number"],
+    ["store_email", "Email address"],
     ["store_hours", "Business hours"],
     ["store_address", "Physical address"],
     ["social_instagram", "Instagram link"],
