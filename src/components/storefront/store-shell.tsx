@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, Search, ShoppingBag, UserRound, Truck, ShieldCheck, CreditCard, Instagram, Facebook, MessageCircle, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getStorefrontHome } from "@/lib/storefront.functions";
 import { settingText } from "@/lib/storefront";
@@ -49,8 +49,10 @@ export function StoreHeader() {
 
 export function StoreFooter() {
   const { data } = useQuery({ queryKey:["storefront-home"], queryFn:()=>getStorefrontHome(), staleTime:60_000 });
-  const settings = data?.settings ?? {};
-  const cats = data?.categories?.length ? data.categories.map((c)=>({label:c.name,slug:c.slug})) : CATEGORY_ORDER.map((slug) => ({label:CATEGORY_LABELS[slug] ?? slug,slug}));
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const settings = mounted ? data?.settings ?? {} : {};
+  const cats = mounted && data?.categories?.length ? data.categories.map((c)=>({label:c.name,slug:c.slug})) : CATEGORY_ORDER.map((slug) => ({label:CATEGORY_LABELS[slug] ?? slug,slug}));
   const phone = settingText(settings,"store_phone"); const whatsapp = settingText(settings,"store_whatsapp");
   const hours = settingText(settings,"store_hours"); const address = settingText(settings,"store_address");
   const socials = [
