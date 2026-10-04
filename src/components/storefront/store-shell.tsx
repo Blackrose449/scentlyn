@@ -54,7 +54,7 @@ export function StoreFooter() {
   const settings = mounted ? data?.settings ?? {} : {};
   const cats = mounted && data?.categories?.length ? data.categories.map((c)=>({label:c.name,slug:c.slug})) : CATEGORY_ORDER.map((slug) => ({label:CATEGORY_LABELS[slug] ?? slug,slug}));
   const phone = settingText(settings,"store_phone"); const whatsapp = settingText(settings,"store_whatsapp");
-  const hours = settingText(settings,"store_hours"); const address = settingText(settings,"store_address");
+  const hours = settingText(settings,"store_hours"); const email = settingText(settings,"store_email"); const address = settingText(settings,"store_address");
   const socials = [
     { href: settingText(settings,"social_instagram"), label:"Instagram", node:<Instagram/> },
     { href: settingText(settings,"social_tiktok"), label:"TikTok", node:<span className="font-bold">TikTok</span> },
@@ -66,7 +66,7 @@ export function StoreFooter() {
       <div><div className="font-display text-4xl italic">Scentlyn<span className="text-accent">✦</span></div><p className="mt-3 max-w-xs text-sm text-primary-foreground/75">Where freshness meets quality</p><div className="mt-5 flex items-center gap-3">{socials.map((s)=> s.href ? <a key={s.label} href={s.href} target="_blank" rel="noreferrer" aria-label={s.label} className="hover:text-accent">{s.node}</a> : <span key={s.label} aria-label={s.label} className="opacity-60">{s.node}</span>)}</div></div>
       <FooterLinks title="Shop" links={cats}/>
       <div><h3 className="font-bold">Help</h3><ul className="mt-3 space-y-2 text-sm text-primary-foreground/75"><li>Track order</li><li>FAQs</li><li>Shipping & delivery</li><li>Returns</li></ul></div>
-      <div><h3 className="font-bold">About</h3><ul className="mt-3 space-y-2 text-sm text-primary-foreground/75"><li>Our story</li>{phone && <li><a href={`tel:${phone}`}>{phone}</a></li>}{hours && <li>{hours}</li>}{address && <li>{address}</li>}</ul></div>
+      <div><h3 className="font-bold">About</h3><ul className="mt-3 space-y-2 text-sm text-primary-foreground/75"><li>Our story</li>{phone && <li><a href={`tel:${phone}`}>{phone}</a></li>}{email && <li><a href={`mailto:${email}`}>{email}</a></li>}{hours && <li>{hours}</li>}{address && <li>{address}</li>}</ul></div>
       <div><h3 className="font-bold">Join our community</h3><form className="mt-3 flex" onSubmit={(event) => event.preventDefault()}><input aria-label="Email address" type="email" placeholder="Your email address" className="min-w-0 flex-1 rounded-l-full bg-card px-4 py-2.5 text-sm text-card-foreground outline-none"/><Button type="submit" className="rounded-l-none rounded-r-full bg-accent text-accent-foreground hover:bg-accent/90">Join</Button></form><p className="mt-2 text-xs text-primary-foreground/65">Special offers, new arrivals and more.</p></div>
     </div>
     <div className="mx-auto flex max-w-7xl flex-col gap-2 border-t border-primary-foreground/20 px-5 py-5 text-xs text-primary-foreground/65 sm:flex-row sm:justify-between"><span>© 2026 Scentlyn. All rights reserved.</span><span>A fresher, brighter home awaits · Kenya 🇰🇪</span></div>
