@@ -1,9 +1,9 @@
 # Current storefront refinements
 
-- [ ] Remove the gold mark and strengthen the Scentlyn wordmark
-- [ ] Remove free-delivery-from-KSh-3,000 messaging
-- [ ] Confirm location-based delivery fees update checkout totals automatically
-- [ ] Replace the kitchen category image with cleaning products
+- [x] Remove the gold mark and strengthen the Scentlyn wordmark
+- [x] Remove free-delivery-from-KSh-3,000 messaging
+- [x] Confirm location-based delivery fees update checkout totals automatically
+- [x] Replace the kitchen category image with cleaning products
 
 # Scentlyn storefront
 - [x] Live catalogue and settings reads

@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, CreditCard, Gem, Headphones, ShieldCheck, Truck } from "lucide-react";
 import heroFallback from "@/assets/scentlyn-hero.jpg";
 import laundryImage from "@/assets/category-laundry.jpg";
-import kitchenImage from "@/assets/category-kitchen.jpg";
+import kitchenImage from "@/assets/category-kitchen-cleaning.jpg";
 import toiletriesImage from "@/assets/category-toiletries.jpg";
 import fragranceImage from "@/assets/category-fragrance.jpg";
 import { Button } from "@/components/ui/button";
