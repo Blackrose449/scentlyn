@@ -92,6 +92,7 @@ function HomepageTab({ data }: { data: Data }) {
   const { saving, savedAt, run } = useSaver();
   const s = data.settings;
   const [headline, setHeadline] = useState(text(s, "hero_headline"));
+  const [eyebrow, setEyebrow] = useState(text(s, "hero_eyebrow"));
   const [subtext, setSubtext] = useState(text(s, "hero_subtext"));
   const [hero, setHero] = useState(text(s, "hero_image_url"));
   const [badges, setBadges] = useState(() => {
@@ -109,6 +110,7 @@ function HomepageTab({ data }: { data: Data }) {
   return (
     <AdminCard className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2">
+        <Field label="Hero introduction"><Input value={eyebrow} onChange={(e) => setEyebrow(e.target.value)} /></Field>
         <Field label="Hero headline"><Input value={headline} onChange={(e) => setHeadline(e.target.value)} /></Field>
         <Field label="Hero subtext"><Textarea rows={2} value={subtext} onChange={(e) => setSubtext(e.target.value)} /></Field>
       </div>
@@ -153,6 +155,7 @@ function HomepageTab({ data }: { data: Data }) {
             saveFn({
               data: {
                 entries: [
+                  { key: "hero_eyebrow", value: eyebrow.trim() },
                   { key: "hero_headline", value: headline.trim() },
                   { key: "hero_subtext", value: subtext.trim() },
                   { key: "hero_image_url", value: hero },

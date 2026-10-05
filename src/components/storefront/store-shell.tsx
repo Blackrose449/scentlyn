@@ -20,9 +20,9 @@ export function StoreHeader() {
       </div>
     </div>
     <header className="border-b border-border bg-secondary">
-      <div className="mx-auto grid h-20 max-w-7xl grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-2 px-4 lg:grid-cols-[14rem_minmax(0,1fr)_14rem]">
+      <div className="mx-auto grid h-24 max-w-7xl grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-2 px-4 lg:h-28 lg:grid-cols-[17rem_minmax(0,1fr)_14rem]">
         <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu" onClick={() => setOpen(true)}><Menu/></Button>
-        <Link to="/" className="justify-self-center font-display text-5xl font-semibold text-primary lg:justify-self-start lg:text-6xl">Scentlyn</Link>
+        <Link to="/" className="justify-self-center font-display text-6xl font-semibold text-primary lg:justify-self-start lg:text-7xl">Scentlyn</Link>
         <nav className="hidden items-center justify-center gap-9 lg:flex" aria-label="Main navigation">
           {CATEGORY_ORDER.map((slug) => <Link key={slug} to="/category/$slug" params={{slug}} search={{sort:"featured"}} className="text-xs font-bold uppercase text-primary transition-colors hover:text-accent" activeProps={{className:"text-accent"}}>{CATEGORY_LABELS[slug]}</Link>)}
         </nav>

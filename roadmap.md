@@ -4,9 +4,9 @@
 - [x] Remove free-delivery-from-KSh-3,000 messaging
 - [x] Confirm location-based delivery fees update checkout totals automatically
 - [x] Replace the kitchen category image with cleaning products
-- [ ] Replace the hero with a warm, lived-in home image
-- [ ] Apply the exact hero, trust, scent-story, and opening-hours copy
-- [ ] Make Favourites horizontally swipeable on mobile
+- [x] Replace the hero with a warm, lived-in home image
+- [x] Apply the exact hero, trust, scent-story, and opening-hours copy
+- [x] Make Favourites horizontally swipeable on mobile
 
 # Scentlyn storefront
 - [x] Live catalogue and settings reads
