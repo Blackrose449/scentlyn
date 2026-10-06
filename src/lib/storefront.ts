@@ -2,7 +2,7 @@ import type { Json } from "@/integrations/supabase/types";
 import type { StoreProduct, StoreSettings } from "./storefront.functions";
 
 export const CATEGORY_ORDER = ["laundry", "kitchen", "toiletries", "fragrance"] as const;
-export const CATEGORY_LABELS: Record<string, string> = { laundry: "Laundry", kitchen: "Kitchen", toiletries: "Toiletries", fragrance: "Fragrance" };
+export const CATEGORY_LABELS: Record<string, string> = { laundry: "Laundry", kitchen: "Kitchen", toiletries: "Bathroom", fragrance: "Fragrance" };
 export function money(value: number) { return new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 }).format(value).replace("KES", "KSh"); }
 export function slugify(value: string) { return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
 export function productPath(product: Pick<StoreProduct, "id" | "name">) { return `${slugify(product.name)}--${product.id}`; }

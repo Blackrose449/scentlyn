@@ -1,5 +1,7 @@
 # Current storefront refinements
 
+- [x] Restore a scent-story image beneath Favourites
+- [x] Rename the Toiletries category to Bathroom across the storefront
 - [x] Remove the gold mark and strengthen the Scentlyn wordmark
 - [x] Remove free-delivery-from-KSh-3,000 messaging
 - [x] Confirm location-based delivery fees update checkout totals automatically
