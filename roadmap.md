@@ -9,6 +9,8 @@
 - [x] Replace the hero with a warm, lived-in home image
 - [x] Apply the exact hero, trust, scent-story, and opening-hours copy
 - [x] Make Favourites horizontally swipeable on mobile
+- [x] Replace hidden horizontal product-type scrolling with a clear mobile dropdown
+- [x] Merge Laundry Capsules into Laundry Pods
 
 # Scentlyn storefront
 - [x] Live catalogue and settings reads
