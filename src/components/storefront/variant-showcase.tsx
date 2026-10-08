@@ -1,6 +1,6 @@
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, ImageIcon } from "lucide-react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { money } from "@/lib/storefront";
 import type { StoreProduct } from "@/lib/storefront.functions";
 
@@ -32,24 +32,32 @@ export function stockLabel(v: Variant) {
 export function VariantCarousel({ product, slides, selectedId, onSelect }: {
   product: StoreProduct; slides: Slide[]; selectedId: string | null; onSelect: (variantId: string) => void;
 }) {
-  const [emblaRef, embla] = useEmblaCarousel({ align: "center", loop: false });
-  const activeIndex = Math.max(0, slides.findIndex((s) => s.variant?.id === selectedId));
+  const startIndex = Math.max(0, slides.findIndex((s) => s.variant?.id === selectedId));
+  const [emblaRef, embla] = useEmblaCarousel({ align: "start", loop: false, startIndex });
+  const [index, setIndex] = useState(startIndex);
+  const lastSelected = useRef<string | null>(selectedId);
 
-  // swipe -> select that variant
+  // swipe / arrows / dots -> remember the slide; select its variant if it has one
   useEffect(() => {
     if (!embla) return;
-    const onSettle = () => {
-      const slide = slides[embla.selectedScrollSnap()];
-      if (slide?.variant && slide.variant.id !== selectedId) onSelect(slide.variant.id);
+    const onSelectSlide = () => {
+      const i = embla.selectedScrollSnap();
+      setIndex(i);
+      const v = slides[i]?.variant;
+      if (v) { lastSelected.current = v.id; onSelect(v.id); }
     };
-    embla.on("select", onSettle);
-    return () => { embla.off("select", onSettle); };
-  }, [embla, slides, selectedId, onSelect]);
+    embla.on("select", onSelectSlide);
+    return () => { embla.off("select", onSelectSlide); };
+  }, [embla, slides, onSelect]);
 
-  // selecting elsewhere -> scroll carousel
+  // a variant picked elsewhere (buttons / cards) -> scroll to its slide, only when that selection actually changed
   useEffect(() => {
-    if (embla && embla.selectedScrollSnap() !== activeIndex) embla.scrollTo(activeIndex);
-  }, [embla, activeIndex]);
+    if (!embla || selectedId === lastSelected.current) return;
+    lastSelected.current = selectedId;
+    const i = slides.findIndex((s) => s.variant?.id === selectedId);
+    if (i >= 0) embla.scrollTo(i);
+  }, [embla, slides, selectedId]);
+  const activeIndex = index;
 
   const prev = useCallback(() => embla?.scrollPrev(), [embla]);
   const next = useCallback(() => embla?.scrollNext(), [embla]);
