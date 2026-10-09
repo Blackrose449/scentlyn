@@ -346,6 +346,7 @@ export type Database = {
           is_best_seller: boolean
           is_featured: boolean
           name: string
+          size_label: string | null
           status: string
           stock_quantity: number
           subcategory: string | null
@@ -362,6 +363,7 @@ export type Database = {
           is_best_seller?: boolean
           is_featured?: boolean
           name: string
+          size_label?: string | null
           status?: string
           stock_quantity?: number
           subcategory?: string | null
@@ -378,6 +380,7 @@ export type Database = {
           is_best_seller?: boolean
           is_featured?: boolean
           name?: string
+          size_label?: string | null
           status?: string
           stock_quantity?: number
           subcategory?: string | null
