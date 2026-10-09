@@ -121,7 +121,7 @@ export function VariantCarousel({ product, options, selectedId, onSelect }: {
       {slides.length > 1 && <>
         <button type="button" onClick={prev} aria-label="Previous" className="absolute left-2 top-[40%] hidden size-9 -translate-y-1/2 place-items-center bg-card/90 shadow sm:grid"><ChevronLeft className="size-5" /></button>
         <button type="button" onClick={next} aria-label="Next" className="absolute right-2 top-[40%] hidden size-9 -translate-y-1/2 place-items-center bg-card/90 shadow sm:grid"><ChevronRight className="size-5" /></button>
-        <div className="mt-3 flex justify-center gap-1.5">
+        <div className="mt-2 flex justify-center gap-1.5">
           {slides.map((s, i) => <button key={s.key} type="button" aria-label={`Go to slide ${i + 1}`} onClick={() => embla?.scrollTo(i)} className={`h-1.5 transition-all ${i === index ? "w-6 bg-accent" : "w-1.5 bg-border"}`} />)}
         </div>
       </>}
