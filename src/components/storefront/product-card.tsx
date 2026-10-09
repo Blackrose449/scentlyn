@@ -14,7 +14,7 @@ export function ProductCard({product}:{product:StoreProduct}) {
       <div className="absolute left-2 top-2 flex flex-col items-start gap-1">{product.is_best_seller && <span className="bg-accent px-2 py-1 text-[10px] font-bold uppercase text-accent-foreground">Best seller</span>}{stock !== null && stock > 0 && stock <= 5 && <span className="bg-destructive/10 px-2 py-1 text-[10px] font-bold uppercase text-destructive">Low stock</span>}</div>
     </Link>
     <div className="flex flex-1 flex-col px-1 pb-1 pt-3"><p className="truncate text-[11px] font-bold uppercase text-muted-foreground">{product.brand ?? "Scentlyn pick"}</p><Link to="/product/$slug" params={{slug:path}} className="mt-1 line-clamp-2 min-h-10 text-sm font-medium leading-5 hover:underline">{product.name}</Link><p className="mt-2 font-bold">{money(availablePrice(product))}</p>
-      {requiresChoice ? <Button className="mt-3 w-full" asChild><Link to="/product/$slug" params={{slug:path}}>Choose options <ArrowRight/></Link></Button> : <Button className="mt-3 w-full" onClick={add}>Add to cart</Button>}
+      {requiresChoice ? <Button className="mt-3 w-full" asChild><Link to="/product/$slug" params={{slug:path}}>View Products <ArrowRight/></Link></Button> : <Button className="mt-3 w-full" onClick={add}>Add to cart</Button>}
     </div>
   </article>;
 }
