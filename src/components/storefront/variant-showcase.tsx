@@ -22,9 +22,15 @@ export function splitBaseSize(name: string): { title: string; size: string | nul
   return { title: name.slice(0, m.index).trim(), size: m[1].trim().toLowerCase() };
 }
 
+/** Main product's size: the admin "Size / option" field first, else read from the end of the name. */
+export function baseInfo(product: StoreProduct): { title: string; size: string | null } {
+  const label = product.size_label?.trim();
+  return label ? { title: product.name, size: label.toLowerCase() } : splitBaseSize(product.name);
+}
+
 /** Main product first (when its size is in the name), then every variant. */
 export function buildOptions(product: StoreProduct): Option[] {
-  const { size } = splitBaseSize(product.name);
+  const { size } = baseInfo(product);
   const norm = (s: string) => s.toLowerCase().replace(/\s+/g, "");
   const options: Option[] = [];
   if (product.variants.length && size && !product.variants.some((v) => norm(v.variant_value) === norm(size))) {
