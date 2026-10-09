@@ -18,7 +18,7 @@ export type StoreProduct = Database["public"]["Tables"]["products"]["Row"] & {
 export type StoreCategory = Database["public"]["Tables"]["categories"]["Row"];
 export type StoreSettings = Record<string, Json>;
 
-const productSelect = `id,name,brand,category_id,subcategory,description,base_price,is_featured,is_best_seller,status,created_at,updated_at,category:categories(name,slug),images:product_images(id,url,display_order),variants:product_variants(*)`;
+const productSelect = `id,name,brand,category_id,subcategory,description,base_price,stock_quantity,is_featured,is_best_seller,status,created_at,updated_at,category:categories(name,slug),images:product_images(id,url,display_order),variants:product_variants(*)`;
 
 function normalizeProduct(row: unknown): StoreProduct {
   const value = row as StoreProduct;
@@ -55,6 +55,12 @@ export const getCategoryPage = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) => z.object({ slug: z.string().min(1).max(80) }).parse(data))
   .handler(async ({ data }) => {
     const db = publicClient();
+           if (data.slug === "all") {
+         const { data: all, error: allError } = await db.from("products").select(productSelect).eq("status", "active");
+         if (allError) throw allError;
+         const now = new Date().toISOString();
+         return { category: { id: "all", name: "All products", slug: "all", display_order: 0, icon_url: null, created_at: now, updated_at: now } as StoreCategory, products: (all ?? []).map(normalizeProduct) };
+       }
     const { data: category, error: categoryError } = await db.from("categories").select("*").eq("slug", data.slug).maybeSingle();
     if (categoryError) throw categoryError;
     if (!category) return null;
