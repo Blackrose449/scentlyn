@@ -42,6 +42,7 @@ function ProductFormPage() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("0");
   const [stock, setStock] = useState("0");
+  const [sizeLabel, setSizeLabel] = useState("");
   const [badge, setBadge] = useState<"none" | "best_seller">("none");
   const [featured, setFeatured] = useState(false);
   const [status, setStatus] = useState<"active" | "draft">("draft");
@@ -59,6 +60,7 @@ function ProductFormPage() {
     setDescription(p.description ?? "");
     setPrice(String(p.base_price));
     setStock(String(p.stock_quantity));
+    setSizeLabel(p.size_label ?? "");
     setBadge(p.is_best_seller ? "best_seller" : "none");
     setFeatured(p.is_featured);
     setStatus(p.status === "active" ? "active" : "draft");
@@ -106,6 +108,7 @@ function ProductFormPage() {
           description: description.trim() || null,
           base_price: Number(price) || 0,
           stock_quantity: Math.max(0, Math.floor(Number(stock) || 0)),
+          size_label: sizeLabel.trim() || null,
           is_featured: featured,
           is_best_seller: badge === "best_seller",
           status,
@@ -149,6 +152,7 @@ function ProductFormPage() {
                 </select>
               </div>
               <div className="space-y-1.5"><Label htmlFor="sub">Subcategory</Label><Input id="sub" placeholder="e.g. Fabric softener" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label htmlFor="size">Size / option (main product)</Label><Input id="size" placeholder="e.g. 52 sheets, 2kg" value={sizeLabel} onChange={(e) => setSizeLabel(e.target.value)} /></div>
               <div className="space-y-1.5"><Label htmlFor="price">Base price (KSh)</Label><Input id="price" type="number" min={0} step="1" required value={price} onChange={(e) => setPrice(e.target.value)} /></div>
             </div>
             <div className="space-y-1.5"><Label htmlFor="desc">Description</Label><Textarea id="desc" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
