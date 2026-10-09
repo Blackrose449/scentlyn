@@ -40,26 +40,26 @@ function ProductView({product,related}:{product:StoreProduct;related:StoreProduc
     cart.addItem({productId:product.id,productSlug:productPath(product),name:displayName,brand:product.brand,image:option?.image??product.images[0]?.url??null,variantId:variant?.id??null,variantLabel:option?(variant?`${variant.variant_type}: ${variant.variant_value}`:`${size??"Standard"}`):null,price:option?.price??product.base_price,quantity:qty,maxQuantity:option?option.stock:null});
     setAdded(option?.id??"base");window.setTimeout(()=>setAdded(null),1600);
   };
-  return <div className="mx-auto max-w-7xl overflow-x-clip px-4 py-8 sm:px-6">
+  return <div className="mx-auto max-w-7xl overflow-x-clip px-4 py-4 sm:px-6 sm:py-8">
     <nav className="text-xs text-muted-foreground"><Link to="/">Home</Link> / {product.category&&<><Link to="/category/$slug" params={{slug:product.category.slug}} search={{sort:"featured"}}>{product.category.name}</Link> / </>}{displayName}</nav>
 
-    <div className="mt-7 grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-[1.05fr_.95fr] lg:gap-14">
+    <div className="mt-3 grid min-w-0 grid-cols-1 gap-3 lg:mt-7 lg:grid-cols-[1.05fr_.95fr] lg:gap-14">
       <VariantCarousel product={product} options={options} selectedId={selectedId} onSelect={select}/>
       <div className="min-w-0">
         <p className="text-xs font-bold uppercase text-accent">{product.brand??product.category?.name??"Scentlyn pick"}</p>
-        <h1 className="mt-2 break-words font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">{displayName}</h1>
-        <p className="mt-5 text-2xl font-extrabold">{money(price)}{selected&&options.length>1&&<span className="ml-2 text-sm font-medium text-muted-foreground">for {selected.label}</span>}</p>
-        {options.length>1&&<fieldset className="mt-7"><legend className="sr-only">Options</legend>
+        <h1 className="mt-1 break-words font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">{displayName}</h1>
+        <p className="mt-2 text-2xl font-extrabold">{money(price)}{selected&&options.length>1&&<span className="ml-2 text-sm font-medium text-muted-foreground">for {selected.label}</span>}</p>
+        {options.length>1&&<fieldset className="mt-4"><legend className="sr-only">Options</legend>
           <div className="flex flex-wrap gap-2">{options.map((o)=><Button key={o.id} type="button" variant={selectedId===o.id?"default":"outline"} onClick={()=>select(o.id)} className="h-auto flex-col items-start gap-0 px-4 py-2 text-left"><span>{o.label}</span><span className="text-xs font-normal opacity-80">{money(o.price)}</span></Button>)}</div></fieldset>}
-        {selected&&<p className={`mt-3 text-sm ${inStock?"text-muted-foreground":"text-destructive"}`}>{stockLabel(selected.stock)}</p>}
-        <div className="mt-8 flex gap-3">
+        {selected&&<p className={`mt-2 text-sm ${inStock?"text-muted-foreground":"text-destructive"}`}>{stockLabel(selected.stock)}</p>}
+        <div className="mt-4 flex gap-3">
           <div className="grid h-11 grid-cols-3 border border-input bg-card"><Button variant="ghost" size="icon" onClick={()=>setQuantity(Math.max(1,quantity-1))} aria-label="Decrease quantity"><Minus/></Button><span className="grid min-w-10 place-items-center font-bold">{quantity}</span><Button variant="ghost" size="icon" onClick={()=>setQuantity(Math.min(selected?Math.max(1,selected.stock):50,quantity+1))} aria-label="Increase quantity"><Plus/></Button></div>
           <Button size="lg" className="min-w-0 flex-1" disabled={!inStock} onClick={()=>addOption(selected,quantity)}>{!inStock?"Out of stock":added&&added===(selected?.id??"base")?<><Check/>Added to cart</>:"Add to cart"}</Button>
         </div>
       </div>
     </div>
 
-    {options.length>1&&<section className="mt-12" aria-label="All options">
+    {options.length>1&&<section className="mt-8" aria-label="All options">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {options.map((o)=>{const out=o.stock<=0;const isSel=o.id===selectedId;
           return <article key={o.id} className={`flex min-w-0 flex-col bg-card p-2.5 shadow-sm transition-shadow hover:shadow-md ${isSel?"ring-2 ring-accent":""}`}>
