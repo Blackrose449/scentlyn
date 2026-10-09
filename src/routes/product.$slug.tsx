@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/storefront/product-card";
 import { getProductPage, type StoreProduct } from "@/lib/storefront.functions";
-import { VariantCarousel, buildOptions, splitBaseSize, stockLabel, type Option } from "@/components/storefront/variant-showcase";
+import { VariantCarousel, buildOptions, baseInfo, stockLabel, type Option } from "@/components/storefront/variant-showcase";
 import { money, productIdFromSlug, productPath } from "@/lib/storefront";
 import { useCart } from "@/lib/cart";
 
@@ -24,7 +24,7 @@ function ProductPage(){
 function ProductView({product,related}:{product:StoreProduct;related:StoreProduct[]}){
   const cart=useCart();
   const options=useMemo(()=>buildOptions(product),[product]);
-  const {title,size}=splitBaseSize(product.name);
+  const {title,size}=baseInfo(product);
   const displayName=options.length>1&&options[0]?.id==="base"?title:product.name;
   const defaultOption=useMemo(()=>{const mid=options.length>=3?options[Math.floor(options.length/2)]:undefined;return (mid&&mid.stock>0?mid:options.find((o)=>o.stock>0)??options[0])??null},[options]);
   const [selectedId,setSelectedId]=useState<string|null>(defaultOption?.id??null);
