@@ -48,7 +48,7 @@ function ProductView({product,related}:{product:StoreProduct;related:StoreProduc
       <VariantCarousel product={product} slides={slides} selectedId={selectedId} onSelect={select}/>
       <div>
         <p className="text-xs font-bold uppercase text-accent">{product.brand??product.category?.name??"Scentlyn pick"}</p>
-        <h1 className="mt-2 font-display text-5xl font-semibold leading-none sm:text-6xl">{product.name}</h1>
+        <h1 className="mt-2 break-words font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">{product.name}</h1>
         <p className="mt-5 text-2xl font-extrabold">{money(price)}{selected&&<span className="ml-2 text-sm font-medium text-muted-foreground">for {selected.variant_value}</span>}</p>
         {priceRange&&priceRange.min!==priceRange.max&&<p className="mt-1 text-xs text-muted-foreground">Range: {money(priceRange.min)} – {money(priceRange.max)} across {product.variants.length} options</p>}
         {groups.map(([type,variants])=><fieldset key={type} className="mt-7"><legend className="mb-3 text-xs font-bold uppercase">{type.replaceAll("_"," ")}</legend>
