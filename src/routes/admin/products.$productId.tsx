@@ -208,7 +208,7 @@ function ProductFormPage() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="stock">Stock {groups.length ? "(used only without variants)" : ""}</Label>
+              <Label htmlFor="stock">Stock {groups.length ? "(main product's own stock)" : ""}</Label>
               <Input id="stock" type="number" min={0} value={stock} onChange={(e) => setStock(e.target.value)} />
             </div>
             <div className="space-y-1.5">
