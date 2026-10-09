@@ -18,7 +18,7 @@ export type StoreProduct = Database["public"]["Tables"]["products"]["Row"] & {
 export type StoreCategory = Database["public"]["Tables"]["categories"]["Row"];
 export type StoreSettings = Record<string, Json>;
 
-const productSelect = `id,name,brand,category_id,subcategory,description,base_price,stock_quantity,is_featured,is_best_seller,status,created_at,updated_at,category:categories(name,slug),images:product_images(id,url,display_order),variants:product_variants(*)`;
+const productSelect = `id,name,brand,category_id,subcategory,description,base_price,size_label,stock_quantity,is_featured,is_best_seller,status,created_at,updated_at,category:categories(name,slug),images:product_images(id,url,display_order),variants:product_variants(*)`;
 
 function normalizeProduct(row: unknown): StoreProduct {
   const value = row as StoreProduct;
