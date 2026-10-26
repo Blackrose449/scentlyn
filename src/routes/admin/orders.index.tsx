@@ -89,7 +89,7 @@ function OrdersPage() {
                       <div className="text-xs text-muted-foreground">{order.customer?.phone}</div>
                     </td>
                     <td className="py-2.5 pr-3 uppercase text-xs">
-                      {order.payment_method} · <StatusBadge status={order.payment_status} />
+                      {order.payment_provider === "mpesa_till" ? "mpesa till" : order.payment_method} · <StatusBadge status={order.payment_status} />
                     </td>
                     <td className="py-2.5 pr-3">{money(Number(order.total))}</td>
                     <td className="py-2.5">
