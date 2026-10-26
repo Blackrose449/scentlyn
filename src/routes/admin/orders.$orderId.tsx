@@ -133,7 +133,7 @@ function OrderDetailPage() {
           <AdminCard>
             <h2 className="mb-3 text-base font-bold">Payment</h2>
             <dl className="space-y-1.5 text-sm">
-              <div className="flex justify-between"><dt>Method</dt><dd className="uppercase">{order.payment_method}</dd></div>
+              <div className="flex justify-between"><dt>Method</dt><dd className="uppercase">{order.payment_provider === "mpesa_till" ? "M-Pesa Till" : order.payment_method}</dd></div>
               <div className="flex justify-between"><dt>Status</dt><dd><StatusBadge status={order.payment_status} /></dd></div>
               {order.mpesa_receipt_number ? <div className="flex justify-between"><dt>M-Pesa receipt</dt><dd>{order.mpesa_receipt_number}</dd></div> : null}
               {order.payment_reference ? <div className="flex justify-between gap-3"><dt>Reference</dt><dd className="truncate">{order.payment_reference}</dd></div> : null}
