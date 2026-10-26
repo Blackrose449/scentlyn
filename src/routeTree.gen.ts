@@ -17,6 +17,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as OffersIdRouteImport } from './routes/offers.$id'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as AdminCustomersIndexRouteImport } from './routes/admin/customers.index'
@@ -66,6 +67,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 const CategorySlugRoute = CategorySlugRouteImport.update({
   id: '/category/$slug',
   path: '/category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OffersIdRoute = OffersIdRouteImport.update({
+  id: '/offers/$id',
+  path: '/offers/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrderOrderIdRoute = OrderOrderIdRouteImport.update({
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/offers/$id': typeof OffersIdRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/offers/$id': typeof OffersIdRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin': typeof AdminIndexRoute
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/offers/$id': typeof OffersIdRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
@@ -190,6 +199,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/admin/settings'
     | '/category/$slug'
+    | '/offers/$id'
     | '/order/$orderId'
     | '/product/$slug'
     | '/admin/'
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/admin/settings'
     | '/category/$slug'
+    | '/offers/$id'
     | '/order/$orderId'
     | '/product/$slug'
     | '/admin'
@@ -229,6 +240,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/admin/settings'
     | '/category/$slug'
+    | '/offers/$id'
     | '/order/$orderId'
     | '/product/$slug'
     | '/admin/'
@@ -249,6 +261,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   CategorySlugRoute: typeof CategorySlugRoute
+  OffersIdRoute: typeof OffersIdRoute
   OrderOrderIdRoute: typeof OrderOrderIdRoute
   ProductSlugRoute: typeof ProductSlugRoute
   ApiPublicMpesaCallbackRoute: typeof ApiPublicMpesaCallbackRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: '/category/$slug'
       fullPath: '/category/$slug'
       preLoaderRoute: typeof CategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offers/$id': {
+      id: '/offers/$id'
+      path: '/offers/$id'
+      fullPath: '/offers/$id'
+      preLoaderRoute: typeof OffersIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/order/$orderId': {
@@ -419,6 +439,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   CategorySlugRoute: CategorySlugRoute,
+  OffersIdRoute: OffersIdRoute,
   OrderOrderIdRoute: OrderOrderIdRoute,
   ProductSlugRoute: ProductSlugRoute,
   ApiPublicMpesaCallbackRoute: ApiPublicMpesaCallbackRoute,
