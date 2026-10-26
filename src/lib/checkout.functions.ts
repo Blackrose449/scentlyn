@@ -23,6 +23,7 @@ const checkoutSchema = z.object({
   deliveryZoneId: z.string().uuid(),
   deliveryAddressNote: z.string().trim().max(500).nullable().optional(),
   paymentMethod: z.enum(["mpesa", "card", "cod"]),
+  mpesaMode: z.enum(["stk", "till"]).optional(),
   items: z.array(cartItemSchema).min(1).max(50),
 });
 
@@ -37,6 +38,12 @@ export const createOrder = createServerFn({ method: "POST" })
     const phone = normalizeKenyanPhone(data.customer.phone);
     if (!phone) {
       return { ok: false as const, error: "Enter a valid Kenyan phone number." };
+    }
+
+    const useTill = data.paymentMethod === "mpesa" && data.mpesaMode === "till";
+    if (useTill) {
+      const till = await readTillSettings(supabaseAdmin);
+      if (!till) return { ok: false as const, error: "Till payments are not available right now. Please choose another M-Pesa option." };
     }
 
     const { data: zone, error: zoneError } = await supabaseAdmin
@@ -134,6 +141,7 @@ export const createOrder = createServerFn({ method: "POST" })
         customer_id: customer.id,
         status: "pending",
         payment_method: data.paymentMethod,
+        payment_provider: useTill ? "mpesa_till" : null,
         payment_status: data.paymentMethod === "cod" ? "pending" : "pending",
         delivery_zone_id: zone.id,
         delivery_address_note: data.deliveryAddressNote ?? null,
@@ -185,13 +193,16 @@ export const startMpesaPayment = createServerFn({ method: "POST" })
 
     const { data: order, error } = await supabaseAdmin
       .from("orders")
-      .select("id, order_number, total, payment_status, customers(phone)")
+      .select("id, order_number, total, payment_status, payment_provider, customers(phone)")
       .eq("id", data.orderId)
       .maybeSingle();
     if (error) throw error;
     if (!order) return { ok: false as const, error: "Order not found." };
     if (order.payment_status === "paid") {
       return { ok: false as const, error: "This order is already paid." };
+    }
+    if (order.payment_provider === "mpesa_till") {
+      return { ok: false as const, error: "This order is paid to our Till number — no prompt is sent." };
     }
 
     const rawPhone = (order.customers as { phone: string } | null)?.phone ?? "";
@@ -291,9 +302,39 @@ export const getOrderStatus = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: order, error } = await supabaseAdmin
       .from("orders")
-      .select("id, order_number, status, payment_status, payment_method, subtotal, delivery_fee, total, created_at")
+      .select("id, order_number, status, payment_status, payment_method, payment_provider, mpesa_receipt_number, subtotal, delivery_fee, total, created_at")
       .eq("id", data.orderId)
       .maybeSingle();
     if (error) throw error;
     return order ?? null;
+  });
+
+type TillDb = { from: (table: "site_settings") => { select: (cols: string) => { in: (col: string, vals: string[]) => PromiseLike<{ data: { key: string; value: unknown }[] | null; error: unknown }> } } };
+async function readTillSettings(db: unknown) {
+  const { data, error } = await (db as TillDb).from("site_settings").select("key,value").in("key", ["mpesa_till_enabled", "mpesa_till_number", "mpesa_till_name"]);
+  if (error) throw error;
+  const map = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));
+  const number = typeof map["mpesa_till_number"] === "string" ? map["mpesa_till_number"].replace(/\D/g, "") : "";
+  if (map["mpesa_till_enabled"] !== true || number.length < 5) return null;
+  return { number, name: typeof map["mpesa_till_name"] === "string" ? map["mpesa_till_name"].trim() : "" };
+}
+
+/** Public: lets checkout and the order page show the Till option (null when switched off). */
+export const getPaymentOptions = createServerFn({ method: "GET" }).handler(async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return { till: await readTillSettings(supabaseAdmin) };
+});
+
+/** Customer enters the M-Pesa confirmation code after paying to the Till. Admin still confirms and marks the order paid. */
+export const submitTillReceipt = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({ orderId: z.string().uuid(), code: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{10}$/, "Enter the 10-character M-Pesa code from your SMS") }).parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: order, error } = await supabaseAdmin.from("orders").select("id, payment_provider, payment_status").eq("id", data.orderId).maybeSingle();
+    if (error) throw error;
+    if (!order || order.payment_provider !== "mpesa_till") return { ok: false as const, error: "Order not found." };
+    if (order.payment_status === "paid") return { ok: true as const };
+    const { error: updateError } = await supabaseAdmin.from("orders").update({ mpesa_receipt_number: data.code }).eq("id", order.id);
+    if (updateError) throw updateError;
+    return { ok: true as const };
   });
