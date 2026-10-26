@@ -321,8 +321,13 @@ async function readTillSettings(db: unknown) {
 
 /** Public: lets checkout and the order page show the Till option (null when switched off). */
 export const getPaymentOptions = createServerFn({ method: "GET" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return { till: await readTillSettings(supabaseAdmin) };
+  // Never let a settings problem take checkout down: if anything fails, just hide the Till option.
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    return { till: await readTillSettings(supabaseAdmin) };
+  } catch {
+    return { till: null };
+  }
 });
 
 /** Customer enters the M-Pesa confirmation code after paying to the Till. Admin still confirms and marks the order paid. */
