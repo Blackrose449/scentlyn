@@ -19,7 +19,7 @@ function extensionOf(file: File) {
 export async function uploadToBucket(file: File, folder: string) {
   const path = `${folder}/${crypto.randomUUID()}.${extensionOf(file)}`;
   const upload = await supabase.storage.from(BUCKET).upload(path, file, {
-    contentType: file.type || "image/jpeg",
+    contentType: file.type || (file.name.toLowerCase().endsWith(".mp4") ? "video/mp4" : "image/jpeg"),
     upsert: false,
   });
   if (upload.error) throw upload.error;
@@ -140,6 +140,51 @@ export function ImageUploader({ value, onChange, folder, multiple = true, label 
       ) : null}
       {multiple && value.length > 1 ? (
         <p className="text-xs text-muted-foreground">Drag thumbnails to reorder — the first photo is the main image.</p>
+      ) : null}
+    </div>
+  );
+}
+
+/** One image or short video (campaigns). Videos: MP4/WebM, up to 20 MB. */
+export const MAX_VIDEO_MB = 20;
+export function MediaUploader({ url, type, onChange, folder = "campaigns", label = "Upload image or video" }: {
+  url: string; type: "image" | "video"; onChange: (url: string, type: "image" | "video") => void; folder?: string; label?: string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function handle(file: File | undefined) {
+    if (!file) return;
+    const isVideo = file.type.startsWith("video/");
+    try {
+      if (!isVideo && !file.type.startsWith("image/")) throw new Error("Choose an image (JPG/PNG/WebP) or a video (MP4/WebM)");
+      if (isVideo && file.size > MAX_VIDEO_MB * 1024 * 1024) throw new Error(`Video is too large — keep it under ${MAX_VIDEO_MB} MB (a 10–15 second clip works well)`);
+      setBusy(true);
+      onChange(await uploadToBucket(file, folder), isVideo ? "video" : "image");
+      toast.success(isVideo ? "Video uploaded" : "Image uploaded");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setBusy(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <input ref={inputRef} type="file" accept="image/*,video/mp4,video/webm" className="sr-only" onChange={(e) => void handle(e.target.files?.[0])} />
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="button" variant="outline" disabled={busy} onClick={() => inputRef.current?.click()}>
+          {busy ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
+          {busy ? "Uploading…" : url ? "Replace" : label}
+        </Button>
+        {url ? <Button type="button" variant="ghost" size="sm" onClick={() => onChange("", "image")}>Remove</Button> : null}
+        <span className="text-xs text-muted-foreground">Landscape 16:9 works best. Video: MP4, up to {MAX_VIDEO_MB} MB.</span>
+      </div>
+      {url ? (
+        <div className="aspect-[16/9] w-full max-w-sm overflow-hidden rounded-md border border-border bg-product">
+          {type === "video" ? <video src={url} muted loop playsInline autoPlay className="size-full object-cover" /> : <img src={url} alt="" className="size-full object-cover" />}
+        </div>
       ) : null}
     </div>
   );
