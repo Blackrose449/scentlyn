@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database, Json } from "@/integrations/supabase/types";
+import { campaignIsLive, parseCampaigns, type StoreCampaign } from "./storefront";
 
 function publicClient() {
   const url = process.env["SUPABASE_URL"] || import.meta.env["VITE_SUPABASE_URL"];
@@ -48,7 +49,11 @@ export const getStorefrontHome = createServerFn({ method: "GET" }).handler(async
   const featured = featuredIds.length
     ? featuredIds.map((id) => products.find((p) => p.id === id)).filter((p): p is StoreProduct => Boolean(p))
     : products.filter((p) => p.is_featured);
-  return { categories: categoriesResult.data ?? [], featured, settings };
+  const campaigns: StoreCampaign[] = parseCampaigns(settings["campaigns"]).filter((c) => campaignIsLive(c)).slice(0, 6).map((c) => ({
+    ...c,
+    products: c.product_ids.map((id) => products.find((p) => p.id === id)).filter((p): p is StoreProduct => Boolean(p)).map((p) => ({ id: p.id, name: p.name })),
+  }));
+  return { categories: categoriesResult.data ?? [], featured, settings, campaigns };
 });
 
 export const getCategoryPage = createServerFn({ method: "GET" })
@@ -88,3 +93,18 @@ export const getDeliveryZones = createServerFn({ method: "GET" }).handler(async 
   if (error) throw error;
   return data ?? [];
 });
+
+export const getCampaignPage = createServerFn({ method: "GET" })
+  .inputValidator((data: unknown) => z.object({ id: z.string().min(1).max(80) }).parse(data))
+  .handler(async ({ data }) => {
+    const db = publicClient();
+    const { data: row, error } = await db.from("site_settings").select("value").eq("key", "campaigns").maybeSingle();
+    if (error) throw error;
+    const campaign = parseCampaigns(row?.value).find((c) => c.id === data.id);
+    if (!campaign || !campaignIsLive(campaign)) return null;
+    if (!campaign.product_ids.length) return { campaign, products: [] as StoreProduct[] };
+    const { data: products, error: productsError } = await db.from("products").select(productSelect).in("id", campaign.product_ids).eq("status", "active");
+    if (productsError) throw productsError;
+    const ordered = campaign.product_ids.map((id) => (products ?? []).find((p) => p.id === id)).filter(Boolean).map(normalizeProduct);
+    return { campaign, products: ordered };
+  });
