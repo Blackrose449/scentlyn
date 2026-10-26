@@ -1,12 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowDown, ArrowUp, CheckCircle2, Loader2, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CheckCircle2, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { AdminCard, PageHeading, StatusBadge } from "@/components/admin/admin-shell";
-import { ImageUploader } from "@/components/admin/image-uploader";
+import { ImageUploader, MediaUploader } from "@/components/admin/image-uploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { Json } from "@/integrations/supabase/types";
 import { getAdminSettings, saveCategories, saveDeliveryZone, saveSettings } from "@/lib/admin.functions";
-import { money } from "@/lib/storefront";
+import { money, parseCampaigns, type Campaign } from "@/lib/storefront";
 
 export const Route = createFileRoute("/admin/settings")({ component: SettingsPage });
 
@@ -103,6 +103,7 @@ function HomepageTab({ data }: { data: Data }) {
   const [promoText, setPromoText] = useState(text(s, "promo_banner_text"));
   const [promoOn, setPromoOn] = useState(s["promo_banner_enabled"] === true);
   const [pick, setPick] = useState("");
+  const [campaigns, setCampaigns] = useState<Campaign[]>(() => parseCampaigns(s["campaigns"]));
 
   const productName = (id: string) => data.products.find((p) => p.id === id)?.name ?? "Unavailable product";
   const available = data.products.filter((p) => !featured.includes(p.id));
@@ -144,9 +145,10 @@ function HomepageTab({ data }: { data: Data }) {
         </div>
       </Field>
       <div className="grid gap-3 rounded-md border border-border p-3 md:grid-cols-[1fr_auto] md:items-end">
-        <Field label="Promo banner text"><Input value={promoText} onChange={(e) => setPromoText(e.target.value)} /></Field>
+        <Field label="Promo banner text (optional one-line strip)"><Input value={promoText} onChange={(e) => setPromoText(e.target.value)} /></Field>
         <label className="flex items-center gap-2 text-sm font-semibold">Show banner <Switch checked={promoOn} onCheckedChange={setPromoOn} /></label>
       </div>
+      <CampaignsEditor campaigns={campaigns} setCampaigns={setCampaigns} products={data.products} />
       <SaveBar
         saving={saving}
         savedAt={savedAt}
@@ -155,6 +157,7 @@ function HomepageTab({ data }: { data: Data }) {
             saveFn({
               data: {
                 entries: [
+                  { key: "campaigns", value: campaigns as unknown as Json },
                   { key: "hero_eyebrow", value: eyebrow.trim() },
                   { key: "hero_headline", value: headline.trim() },
                   { key: "hero_subtext", value: subtext.trim() },
@@ -258,8 +261,24 @@ function StoreTab({ data }: { data: Data }) {
     ["social_facebook", "Facebook link"],
   ] as const;
   const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(keys.map(([k]) => [k, text(data.settings, k)])));
+  const [tillOn, setTillOn] = useState(data.settings["mpesa_till_enabled"] === true);
+  const [tillNumber, setTillNumber] = useState(text(data.settings, "mpesa_till_number"));
+  const [tillName, setTillName] = useState(text(data.settings, "mpesa_till_name"));
   return (
     <AdminCard className="space-y-4">
+      <div className="space-y-3 rounded-md border border-border p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-bold">M-Pesa Till number</p>
+            <p className="text-xs text-muted-foreground">When on, customers who choose M-Pesa can also pay to this Till. Switch it off once Pesapal is live. Paid orders still need to be marked as paid on the order page after you check your M-Pesa statement.</p>
+          </div>
+          <Switch checked={tillOn} onCheckedChange={setTillOn} aria-label="Enable Till payments" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Till number"><Input inputMode="numeric" value={tillNumber} onChange={(e) => setTillNumber(e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="e.g. 5123456" /></Field>
+          <Field label="Name shown to customers (optional)"><Input value={tillName} onChange={(e) => setTillName(e.target.value)} placeholder="Business name on the Till" /></Field>
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         {keys.map(([k, label]) => (
           <Field key={k} label={label}>
@@ -267,7 +286,61 @@ function StoreTab({ data }: { data: Data }) {
           </Field>
         ))}
       </div>
-      <SaveBar saving={saving} savedAt={savedAt} onSave={() => run(() => saveFn({ data: { entries: keys.map(([k]) => ({ key: k, value: (values[k] ?? "").trim() })) } }))} />
+      <SaveBar saving={saving} savedAt={savedAt} onSave={() => run(() => saveFn({ data: { entries: [...keys.map(([k]) => ({ key: k, value: (values[k] ?? "").trim() })), { key: "mpesa_till_enabled", value: tillOn && tillNumber.length >= 5 }, { key: "mpesa_till_number", value: tillNumber }, { key: "mpesa_till_name", value: tillName.trim() }] } }))} />
     </AdminCard>
+  );
+}
+
+function CampaignsEditor({ campaigns, setCampaigns, products }: { campaigns: Campaign[]; setCampaigns: (next: Campaign[]) => void; products: Data["products"] }) {
+  const update = (id: string, patch: Partial<Campaign>) => setCampaigns(campaigns.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+  const add = () => setCampaigns([...campaigns, { id: crypto.randomUUID().slice(0, 8), title: "", media_type: "image", media_url: "", poster_url: "", product_ids: [], enabled: true, ends_at: "" }]);
+  return (
+    <div className="space-y-3 rounded-md border border-border p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold">Campaigns</p>
+          <p className="text-xs text-muted-foreground">Poster, image or short video shown on the homepage. Link each one to the products it promotes. Remember to press Save changes.</p>
+        </div>
+        <Button type="button" variant="outline" size="sm" onClick={add}><Plus className="size-4" /> Add campaign</Button>
+      </div>
+      {!campaigns.length ? <p className="text-sm text-muted-foreground">No campaigns yet.</p> : null}
+      {campaigns.map((c, index) => {
+        const available = products.filter((p) => !c.product_ids.includes(p.id));
+        return (
+          <div key={c.id} className="space-y-3 rounded-md border border-border bg-background p-3">
+            <div className="flex items-center gap-2">
+              <Input placeholder="Campaign title, e.g. Laundry Pods offer" value={c.title} onChange={(e) => update(c.id, { title: e.target.value })} />
+              <Button type="button" variant="ghost" size="icon" aria-label="Move up" disabled={index === 0} onClick={() => { const n = [...campaigns]; [n[index - 1], n[index]] = [n[index]!, n[index - 1]!]; setCampaigns(n); }}><ArrowUp className="size-4" /></Button>
+              <Button type="button" variant="ghost" size="icon" aria-label="Delete campaign" onClick={() => setCampaigns(campaigns.filter((x) => x.id !== c.id))}><Trash2 className="size-4" /></Button>
+            </div>
+            <MediaUploader url={c.media_url} type={c.media_type} onChange={(url, type) => update(c.id, { media_url: url, media_type: type, ...(type === "image" ? { poster_url: "" } : {}) })} />
+            {c.media_type === "video" && c.media_url ? (
+              <Field label="Video cover image (optional — shown while the video loads)">
+                <ImageUploader multiple={false} folder="campaigns" label={c.poster_url ? "Change cover" : "Upload cover"} value={c.poster_url ? [{ id: null, url: c.poster_url }] : []} onChange={(next) => update(c.id, { poster_url: next[0]?.url ?? "" })} />
+              </Field>
+            ) : null}
+            <Field label="Linked products">
+              <ul className="space-y-1.5">
+                {c.product_ids.map((id) => (
+                  <li key={id} className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm">
+                    <span className="flex-1 truncate">{products.find((p) => p.id === id)?.name ?? "Unavailable product"}</span>
+                    <Button type="button" variant="ghost" size="icon" aria-label="Remove" onClick={() => update(c.id, { product_ids: c.product_ids.filter((x) => x !== id) })}><X className="size-4" /></Button>
+                  </li>
+                ))}
+                {!c.product_ids.length ? <li className="text-sm text-muted-foreground">No products linked — the campaign will display without a link. One product opens its page; several open an offer page listing them.</li> : null}
+              </ul>
+              <select className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value="" onChange={(e) => e.target.value && update(c.id, { product_ids: [...c.product_ids, e.target.value] })}>
+                <option value="">Add a product…</option>
+                {available.map((p) => <option key={p.id} value={p.id}>{p.name}{p.status !== "active" ? " (draft)" : ""}</option>)}
+              </select>
+            </Field>
+            <div className="flex flex-wrap items-end gap-4">
+              <Field label="Ends on (optional)"><Input type="date" value={c.ends_at} onChange={(e) => update(c.id, { ends_at: e.target.value })} /></Field>
+              <label className="flex items-center gap-2 pb-2 text-sm font-semibold">Show on homepage <Switch checked={c.enabled} onCheckedChange={(v) => update(c.id, { enabled: v })} /></label>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
