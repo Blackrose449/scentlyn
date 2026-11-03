@@ -41,6 +41,7 @@ export type Database = {
           display_order: number
           icon_url: string | null
           id: string
+          is_active: boolean
           name: string
           slug: string
           updated_at: string
@@ -50,6 +51,7 @@ export type Database = {
           display_order?: number
           icon_url?: string | null
           id?: string
+          is_active?: boolean
           name: string
           slug: string
           updated_at?: string
@@ -59,6 +61,7 @@ export type Database = {
           display_order?: number
           icon_url?: string | null
           id?: string
+          is_active?: boolean
           name?: string
           slug?: string
           updated_at?: string
@@ -290,9 +293,45 @@ export type Database = {
           },
         ]
       }
+      product_types: {
+        Row: {
+          category_id: string
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_types_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_variants: {
         Row: {
           created_at: string
+          display_order: number
           id: string
           price_override: number | null
           product_id: string
@@ -304,6 +343,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          display_order?: number
           id?: string
           price_override?: number | null
           product_id: string
@@ -315,6 +355,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          display_order?: number
           id?: string
           price_override?: number | null
           product_id?: string
@@ -342,6 +383,7 @@ export type Database = {
           category_id: string | null
           created_at: string
           description: string | null
+          extra_category_ids: string[]
           id: string
           is_best_seller: boolean
           is_featured: boolean
@@ -359,6 +401,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string | null
+          extra_category_ids?: string[]
           id?: string
           is_best_seller?: boolean
           is_featured?: boolean
@@ -376,6 +419,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string | null
+          extra_category_ids?: string[]
           id?: string
           is_best_seller?: boolean
           is_featured?: boolean

@@ -1,8 +1,6 @@
 import type { Json } from "@/integrations/supabase/types";
-import type { StoreProduct, StoreSettings } from "./storefront.functions";
+import type { StoreCategory, StoreProduct, StoreSettings } from "./storefront.functions";
 
-export const CATEGORY_ORDER = ["laundry", "kitchen", "toiletries", "fragrance"] as const;
-export const CATEGORY_LABELS: Record<string, string> = { laundry: "Laundry", kitchen: "Kitchen", toiletries: "Bathroom", fragrance: "Fragrance" };
 export function money(value: number) { return new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 }).format(value).replace("KES", "KSh"); }
 export function slugify(value: string) { return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
 export function productPath(product: Pick<StoreProduct, "id" | "name">) { return `${slugify(product.name)}--${product.id}`; }
@@ -13,10 +11,22 @@ export function settingList(settings: StoreSettings, key: string): string[] { co
 export function availablePrice(product: StoreProduct) { const prices = product.variants.map((v) => v.price_override).filter((v): v is number => v !== null); return prices.length ? Math.min(product.base_price, ...prices) : product.base_price; }
 export function stockFor(product: StoreProduct) { return product.variants.length ? product.variants.reduce((sum, v) => sum + v.stock_quantity, 0) : null; }
 
+/* ---- Categories: the categories table is the single source of truth ---- */
+export type CategoryLink = { slug: string; name: string };
+/** Rendered only until the live category list arrives (prevents a blank header while loading). */
+export const FALLBACK_CATEGORIES: CategoryLink[] = [
+  { slug: "laundry", name: "Laundry" },
+  { slug: "kitchen", name: "Kitchen" },
+  { slug: "toiletries", name: "Bathroom" },
+  { slug: "fragrance", name: "Fragrance" },
+];
+export function activeCategories(categories: StoreCategory[]): StoreCategory[] {
+  return categories
+    .filter((c) => c.is_active)
+    .sort((a, b) => a.display_order - b.display_order || a.name.localeCompare(b.name));
+}
+
 /* ---- Product-type (subcategory) helpers for the expandable shop filter ---- */
-export const TYPE_ORDER: Record<string, string[]> = {
-  laundry: ["Laundry Pods", "Scent Boosters", "Stain Removers", "Machine Care", "Colour Catchers", "Fabric Softeners", "Laundry Accessories"],
-};
 const TYPE_ALIASES: Record<string, string> = {
   laundrypod: "Laundry Pods", laundrycapsule: "Laundry Pods", pod: "Laundry Pods", capsule: "Laundry Pods",
   scentbooster: "Scent Boosters", inwashscentbooster: "Scent Boosters",
@@ -34,17 +44,51 @@ export function canonicalType(raw: string | null | undefined): string | null {
   const key = text.toLowerCase().replace(/[^a-z]/g, "").replace(/s$/, "");
   return TYPE_ALIASES[key] ?? text.replace(/\b\w/g, (c) => c.toUpperCase());
 }
+/** Matches a product's type against the admin-managed type names first, else canonicalizes it. */
+export function typeName(raw: string | null | undefined, known: string[]): string | null {
+  const base = canonicalType(raw);
+  if (!base) return null;
+  return known.find((name) => name.toLowerCase() === base.toLowerCase()) ?? base;
+}
 export type TypeGroup = { slug: string; name: string; count: number; subs: { name: string; count: number }[] };
-export function buildTypeGroups(products: StoreProduct[], only?: string): TypeGroup[] {
-  return CATEGORY_ORDER.filter((slug) => !only || slug === only).map((slug) => {
-    const inCategory = products.filter((p) => p.category?.slug === slug);
-    const counts = new Map<string, number>();
-    for (const p of inCategory) { const t = canonicalType(p.subcategory); if (t) counts.set(t, (counts.get(t) ?? 0) + 1); }
-    const preferred = TYPE_ORDER[slug] ?? [];
-    const subs = [...counts.entries()].map(([name, count]) => ({ name, count }))
-      .sort((a, b) => { const ia = preferred.indexOf(a.name), ib = preferred.indexOf(b.name); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.name.localeCompare(b.name); });
-    return { slug, name: CATEGORY_LABELS[slug] ?? slug, count: inCategory.length, subs };
-  });
+export type StoreTypeRef = { category_id: string; name: string; display_order?: number };
+/**
+ * Builds the "Shop by type" groups. A product counts towards a category when its main
+ * category or one of its extra categories matches; product types are only counted under
+ * a product's main category.
+ */
+export function buildTypeGroups(products: StoreProduct[], categories: StoreCategory[], types: StoreTypeRef[], only?: string): TypeGroup[] {
+  return activeCategories(categories)
+    .filter((c) => !only || c.slug === only)
+    .map((c) => {
+      const known = types.filter((t) => t.category_id === c.id);
+      const knownNames = known.map((t) => t.name);
+      const inCategory = products.filter((p) => p.category_slugs?.includes(c.slug));
+      const counts = new Map<string, number>();
+      for (const p of inCategory) {
+        if (p.category_id !== c.id) continue;
+        const t = typeName(p.subcategory, knownNames);
+        if (t) counts.set(t, (counts.get(t) ?? 0) + 1);
+      }
+      const preferred = [...known].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)).map((t) => t.name);
+      const subs = [...counts.entries()].map(([name, count]) => ({ name, count }))
+        .sort((a, b) => { const ia = preferred.indexOf(a.name), ib = preferred.indexOf(b.name); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.name.localeCompare(b.name); });
+      return { slug: c.slug, name: c.name, count: inCategory.length, subs };
+    });
+}
+
+/* ---- Last browsed shop page (for "Continue shopping") ---- */
+export type LastShopPage = { kind: "category"; slug: string; search?: Record<string, unknown> } | { kind: "product"; slug: string };
+const LAST_SHOP_KEY = "scentlyn-last-shop-page";
+export function rememberShopPage(page: LastShopPage) { try { sessionStorage.setItem(LAST_SHOP_KEY, JSON.stringify(page)); } catch { /* storage unavailable */ } }
+export function lastShopPage(): LastShopPage | null {
+  try {
+    const raw = sessionStorage.getItem(LAST_SHOP_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as LastShopPage;
+    if ((parsed?.kind === "category" || parsed?.kind === "product") && typeof parsed.slug === "string" && parsed.slug) return parsed;
+  } catch { /* storage unavailable */ }
+  return null;
 }
 
 /* ---- Campaigns (promo image / video / poster, optionally linked to products) ---- */
