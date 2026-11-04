@@ -2,11 +2,12 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, ImageIcon, Minus, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { ProductCard } from "@/components/storefront/product-card";
 import { getProductPage, type StoreProduct } from "@/lib/storefront.functions";
 import { buildOptions, baseInfo, stockLabel, type Option } from "@/components/storefront/variant-showcase";
-import { money, productIdFromSlug, productPath } from "@/lib/storefront";
+import { money, productIdFromSlug, productPath, rememberShopPage } from "@/lib/storefront";
+import { BackToShopLink } from "@/components/storefront/back-to-shop";
 import { useCart } from "@/lib/cart";
 
 const productQuery=(slug:string)=>{const productId=productIdFromSlug(slug);return queryOptions({queryKey:["product",productId],queryFn:()=>productId?getProductPage({data:{productId}}):Promise.resolve(null),staleTime:60_000})};
@@ -31,6 +32,8 @@ function ProductView({product,related}:{product:StoreProduct;related:StoreProduc
   const [quantity,setQuantity]=useState(1);
   // Always open a product at the top of the page (the previous page's scroll position used to carry over, then jump).
   useEffect(()=>{window.scrollTo({top:0,left:0,behavior:"instant" as ScrollBehavior})},[product.id]);
+  // Remember this shop page so "Continue shopping" can come back to it.
+  useEffect(()=>{rememberShopPage({kind:"product",slug:productPath(product)})},[product.id,product.name]);
   const addOption=(option:Option|null,qty:number)=>{
     if(options.length&&!option)return;
     const variant=option?.variantId?product.variants.find((v)=>v.id===option.variantId)??null:null;
@@ -84,4 +87,4 @@ function ProductView({product,related}:{product:StoreProduct;related:StoreProduc
     {related.length>0&&<section className="mt-14"><h2 className="font-display text-4xl font-semibold italic">You may also like</h2><div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{related.map((p)=><ProductCard key={p.id} product={p}/>)}</div></section>}
   </div>;
 }
-function Unavailable(){return <div className="mx-auto max-w-xl px-5 py-24 text-center"><h1 className="font-display text-5xl">This product is unavailable</h1><p className="mt-3 text-muted-foreground">It may have moved or is being restocked.</p><Button className="mt-6" asChild><Link to="/">Continue shopping</Link></Button></div>}
+function Unavailable(){return <div className="mx-auto max-w-xl px-5 py-24 text-center"><h1 className="font-display text-5xl">This product is unavailable</h1><p className="mt-3 text-muted-foreground">It may have moved or is being restocked.</p><BackToShopLink className={`${buttonVariants()} mt-6`}>Continue shopping</BackToShopLink></div>}

@@ -3,14 +3,23 @@ import { Menu, Search, ShoppingBag, UserRound, Truck, ShieldCheck, CreditCard, I
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getStorefrontHome } from "@/lib/storefront.functions";
-import { settingText } from "@/lib/storefront";
+import { activeCategories, FALLBACK_CATEGORIES, settingText, type CategoryLink } from "@/lib/storefront";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
-import { CATEGORY_LABELS, CATEGORY_ORDER } from "@/lib/storefront";
+
+/** Categories come from the categories table (ordered, active only); fallback covers the load flash. */
+function useCategoryLinks(): CategoryLink[] {
+  const { data } = useQuery({ queryKey: ["storefront-home"], queryFn: () => getStorefrontHome(), staleTime: 60_000 });
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (mounted && data?.categories?.length) return activeCategories(data.categories).map((c) => ({ slug: c.slug, name: c.name }));
+  return FALLBACK_CATEGORIES;
+}
 
 export function StoreHeader() {
   const { count } = useCart();
   const [open, setOpen] = useState(false);
+  const links = useCategoryLinks();
   return <>
     <div className="bg-primary text-primary-foreground">
       <div className="mx-auto grid max-w-7xl grid-cols-3 gap-2 px-4 py-2 text-center text-[10px] font-semibold uppercase sm:text-xs">
@@ -24,7 +33,7 @@ export function StoreHeader() {
         <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu" onClick={() => setOpen(true)}><Menu/></Button>
         <Link to="/" className="justify-self-center font-display text-6xl font-semibold text-primary lg:justify-self-start lg:text-7xl">Scentlyn</Link>
         <nav className="hidden items-center justify-center gap-9 lg:flex" aria-label="Main navigation">
-          {CATEGORY_ORDER.map((slug) => <Link key={slug} to="/category/$slug" params={{slug}} search={{sort:"featured"}} className="text-xs font-bold uppercase text-primary transition-colors hover:text-accent" activeProps={{className:"text-accent"}}>{CATEGORY_LABELS[slug]}</Link>)}
+          {links.map((link) => <Link key={link.slug} to="/category/$slug" params={{slug:link.slug}} search={{sort:"featured"}} className="text-xs font-bold uppercase text-primary transition-colors hover:text-accent" activeProps={{className:"text-accent"}}>{link.name}</Link>)}
         </nav>
         <div className="flex items-center justify-end gap-0.5">
           <Button variant="ghost" size="icon" aria-label="Search products"><Search/></Button>
@@ -39,7 +48,7 @@ export function StoreHeader() {
       <aside className="h-full w-[82%] max-w-xs bg-secondary p-5 shadow-xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between"><span className="font-display text-4xl font-semibold">Scentlyn</span><Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Close menu"><X/></Button></div>
         <nav className="mt-10 grid gap-1" aria-label="Mobile navigation">
-          {CATEGORY_ORDER.map((slug) => <Link key={slug} to="/category/$slug" params={{slug}} search={{sort:"featured"}} onClick={() => setOpen(false)} className="border-b border-border py-4 font-display text-2xl">{CATEGORY_LABELS[slug]}</Link>)}
+          {links.map((link) => <Link key={link.slug} to="/category/$slug" params={{slug:link.slug}} search={{sort:"featured"}} onClick={() => setOpen(false)} className="border-b border-border py-4 font-display text-2xl">{link.name}</Link>)}
           <Link to="/cart" onClick={() => setOpen(false)} className="border-b border-border py-4 font-display text-2xl">Your cart ({count})</Link>
         </nav>
       </aside>
@@ -52,7 +61,7 @@ export function StoreFooter() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const settings = mounted ? data?.settings ?? {} : {};
-  const cats = mounted && data?.categories?.length ? data.categories.map((c)=>({label:c.name,slug:c.slug})) : CATEGORY_ORDER.map((slug) => ({label:CATEGORY_LABELS[slug] ?? slug,slug}));
+  const cats: CategoryLink[] = mounted && data?.categories?.length ? activeCategories(data.categories).map((c)=>({slug:c.slug,name:c.name})) : FALLBACK_CATEGORIES;
   const phone = settingText(settings,"store_phone"); const whatsapp = settingText(settings,"store_whatsapp");
   const hours = settingText(settings,"store_hours"); const email = settingText(settings,"store_email"); const address = settingText(settings,"store_address");
   const socials = [
@@ -72,6 +81,6 @@ export function StoreFooter() {
     <div className="mx-auto flex max-w-7xl flex-col gap-2 border-t border-primary-foreground/20 px-5 py-5 text-xs text-primary-foreground/65 sm:flex-row sm:justify-between"><span>© 2026 Scentlyn. All rights reserved.</span><span>A fresher, brighter home awaits · Kenya 🇰🇪</span></div>
   </footer>;
 }
-function FooterLinks({title,links}:{title:string;links:{label:string;slug:string}[]}) { return <div><h3 className="font-bold">{title}</h3><ul className="mt-3 space-y-2 text-sm text-primary-foreground/75">{links.map((item)=><li key={item.slug}><Link to="/category/$slug" params={{slug:item.slug}} search={{sort:"featured"}} className="hover:text-primary-foreground">{item.label}</Link></li>)}</ul></div>; }
+function FooterLinks({title,links}:{title:string;links:CategoryLink[]}) { return <div><h3 className="font-bold">{title}</h3><ul className="mt-3 space-y-2 text-sm text-primary-foreground/75">{links.map((item)=><li key={item.slug}><Link to="/category/$slug" params={{slug:item.slug}} search={{sort:"featured"}} className="hover:text-primary-foreground">{item.name}</Link></li>)}</ul></div>; }
 
 export function StoreLayout({children}:{children:React.ReactNode}) { return <div className="min-h-screen bg-background text-foreground"><StoreHeader/><main>{children}</main><StoreFooter/></div>; }

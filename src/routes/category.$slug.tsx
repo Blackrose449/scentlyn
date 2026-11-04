@@ -1,32 +1,37 @@
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
+import { useEffect } from "react";
 import { EmptyProducts, ProductCard } from "@/components/storefront/product-card";
 import { Button } from "@/components/ui/button";
 import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from "@/components/ui/select";
 import { getCategoryPage } from "@/lib/storefront.functions";
 import { TypeFilter } from "@/components/storefront/type-filter";
-import { CATEGORY_LABELS, buildTypeGroups, canonicalType } from "@/lib/storefront";
+import { buildTypeGroups, rememberShopPage, typeName } from "@/lib/storefront";
 
 const searchSchema=z.object({category:z.string().optional(),subcategory:z.string().optional(),sort:z.enum(["featured","price-low","price-high","newest"]).catch("featured")});
 const categoryQuery=(slug:string)=>queryOptions({queryKey:["category",slug],queryFn:()=>getCategoryPage({data:{slug}}),staleTime:60_000});
 export const Route=createFileRoute("/category/$slug")({
   validateSearch:(search)=>searchSchema.parse(search),
   loader:({context,params})=>context.queryClient.ensureQueryData(categoryQuery(params.slug)),
-  head:({params,loaderData})=>{const label=loaderData?.category.name??CATEGORY_LABELS[params.slug]??"Collection";return {meta:[{title:`${label} essentials — Scentlyn`},{name:"description",content:`Shop ${label.toLowerCase()} essentials from Scentlyn, delivered across Kenya.`},{property:"og:title",content:`${label} essentials — Scentlyn`},{property:"og:description",content:`Shop quality ${label.toLowerCase()} essentials delivered across Kenya.`},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}],links:[{rel:"canonical",href:`/category/${params.slug}`} ]}},
+  head:({params,loaderData})=>{const label=loaderData?.category.name??params.slug;return {meta:[{title:`${label} essentials — Scentlyn`},{name:"description",content:`Shop ${label.toLowerCase()} essentials from Scentlyn, delivered across Kenya.`},{property:"og:title",content:`${label} essentials — Scentlyn`},{property:"og:description",content:`Shop quality ${label.toLowerCase()} essentials delivered across Kenya.`},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}],links:[{rel:"canonical",href:`/category/${params.slug}`} ]}},
   component:CategoryPage,errorComponent:()=> <CategoryMessage title="This collection couldn't load"/>,notFoundComponent:()=> <CategoryMessage title="Collection not found"/>,
 });
 function CategoryPage(){
   const {slug}=Route.useParams();const search=Route.useSearch();const navigate=Route.useNavigate();
   const {data}=useSuspenseQuery(categoryQuery(slug));
+  // Remember this shop page so "Continue shopping" can come back to it.
+  useEffect(()=>{rememberShopPage({kind:"category",slug,search:{sort:search.sort,...(search.category?{category:search.category}:{}),...(search.subcategory?{subcategory:search.subcategory}:{})}})},[slug,search.sort,search.category,search.subcategory]);
   if(!data)return <CategoryMessage title="Collection not found"/>;
   const isAll=slug==="all";
   const category=isAll?search.category:slug;
-  const type=canonicalType(search.subcategory)??undefined;
-  const groups=buildTypeGroups(data.products,isAll?undefined:slug);
-  let products=data.products.filter((p)=>(!category||p.category?.slug===category||!isAll)&&(!type||canonicalType(p.subcategory)===type));
+  const knownTypes=data.types.map((t)=>t.name);
+  const type=typeName(search.subcategory,knownTypes)??undefined;
+  const groups=buildTypeGroups(data.products,data.categories,data.types,isAll?undefined:slug);
+  const catId=isAll?data.categories.find((c)=>c.slug===category)?.id:data.category.id;
+  let products=data.products.filter((p)=>(!category||p.category_slugs?.includes(category))&&(!type||(catId&&p.category_id===catId&&typeName(p.subcategory,knownTypes)===type)));
   products=[...products].sort((a,b)=>search.sort==="price-low"?a.base_price-b.base_price:search.sort==="price-high"?b.base_price-a.base_price:search.sort==="newest"?b.created_at.localeCompare(a.created_at):Number(b.is_featured)-Number(a.is_featured));
-  const heading=isAll?(category?CATEGORY_LABELS[category]??data.category.name:data.category.name):data.category.name;
+  const heading=isAll?(category?(data.categories.find((c)=>c.slug===category)?.name??data.category.name):data.category.name):data.category.name;
   const pick=(c?:string,t?:string)=>navigate({search:(prev)=>({...prev,category:isAll?c:undefined,subcategory:t})});
   return <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
     <nav className="text-xs text-muted-foreground"><Link to="/">Home</Link> / {isAll?<Link to="/category/$slug" params={{slug:"all"}} search={{sort:"featured"}}>All products</Link>:data.category.name}{isAll&&category&&<> / {heading}</>}{type&&<> / {type}</>}</nav>
