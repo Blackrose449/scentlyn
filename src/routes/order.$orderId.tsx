@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { CheckCircle2, Copy, Loader2, RefreshCcw, Smartphone, XCircle } from "lucide-react";
