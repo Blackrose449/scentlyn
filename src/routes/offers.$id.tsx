@@ -1,7 +1,8 @@
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { EmptyProducts, ProductCard } from "@/components/storefront/product-card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { BackToShopLink } from "@/components/storefront/back-to-shop";
 import { getCampaignPage } from "@/lib/storefront.functions";
 
 const offerQuery = (id: string) => queryOptions({ queryKey: ["offer", id], queryFn: () => getCampaignPage({ data: { id } }), staleTime: 60_000 });
@@ -40,5 +41,5 @@ function OfferPage() {
   );
 }
 function OfferMessage() {
-  return <div className="mx-auto max-w-xl px-5 py-24 text-center"><h1 className="font-display text-5xl">This offer has ended</h1><Button className="mt-6" asChild><Link to="/">Continue shopping</Link></Button></div>;
+  return <div className="mx-auto max-w-xl px-5 py-24 text-center"><h1 className="font-display text-5xl">This offer has ended</h1><BackToShopLink className={`${buttonVariants()} mt-6`}>Continue shopping</BackToShopLink></div>;
 }
