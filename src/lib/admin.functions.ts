@@ -217,6 +217,7 @@ const productInput = z.object({
   name: z.string().min(2).max(160),
   brand: z.string().max(80).nullable(),
   category_id: z.string().uuid().nullable(),
+  extra_category_ids: z.array(z.string().uuid()).max(12).default([]),
   subcategory: z.string().max(80).nullable(),
   description: z.string().max(4000).nullable(),
   size_label: z.string().max(40).nullable(),
@@ -249,7 +250,9 @@ export const saveProduct = createServerFn({ method: "POST" })
     const payload = {
       name: data.name,
       brand: data.brand,
+      // Main category plus optional extra placements — the main category is never stored in the extras.
       category_id: data.category_id,
+      extra_category_ids: data.extra_category_ids.filter((id) => id !== data.category_id),
       subcategory: data.subcategory,
       description: data.description,
       size_label: data.size_label,
@@ -279,7 +282,7 @@ export const saveProduct = createServerFn({ method: "POST" })
       const { error } = await db.from("product_variants").delete().in("id", removedVariants);
       if (error) throw error;
     }
-    for (const variant of data.variants) {
+    for (const [index, variant] of data.variants.entries()) {
       const row = {
         product_id: productId,
         variant_type: variant.variant_type,
@@ -287,6 +290,8 @@ export const saveProduct = createServerFn({ method: "POST" })
         price_override: variant.price_override,
         stock_quantity: variant.stock_quantity,
         sku: variant.sku,
+        // The order the owner set in admin: the first variant is the default shown on the product page.
+        display_order: index,
       };
       if (variant.id) {
         const { error } = await db.from("product_variants").update(row).eq("id", variant.id);
@@ -479,6 +484,120 @@ export const saveDeliveryZone = createServerFn({ method: "POST" })
       if (error) throw error;
     } else {
       const { error } = await context.supabase.from("delivery_zones").insert(row);
+      if (error) throw error;
+    }
+    return { ok: true };
+  });
+
+/* -------------------------------- categories ------------------------------- */
+
+export type AdminCategoryRow = Database["public"]["Tables"]["categories"]["Row"];
+export type AdminProductTypeRow = Database["public"]["Tables"]["product_types"]["Row"];
+
+export const getAdminCategories = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const [categoriesResult, typesResult, productsResult] = await Promise.all([
+      context.supabase.from("categories").select("*").order("display_order"),
+      context.supabase.from("product_types").select("*").order("display_order"),
+      context.supabase.from("products").select("id,category_id,extra_category_ids").is("archived_at", null),
+    ]);
+    if (categoriesResult.error) throw categoriesResult.error;
+    if (typesResult.error) throw typesResult.error;
+    if (productsResult.error) throw productsResult.error;
+    // A product counts towards a category when it is the main category or one of the extras.
+    const counts: Record<string, number> = {};
+    for (const product of productsResult.data ?? []) {
+      const ids = new Set<string>([product.category_id, ...(product.extra_category_ids ?? [])].filter((id): id is string => Boolean(id)));
+      for (const id of ids) counts[id] = (counts[id] ?? 0) + 1;
+    }
+    return {
+      categories: (categoriesResult.data ?? []) as unknown as AdminCategoryRow[],
+      types: (typesResult.data ?? []) as unknown as AdminProductTypeRow[],
+      counts,
+    };
+  });
+
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export const saveCategory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        id: z.string().uuid().nullable(),
+        name: z.string().min(2).max(60),
+        slug: z.string().min(2).max(60),
+        display_order: z.number().int().min(0).max(99),
+        icon_url: z.string().max(2000).nullable(),
+        is_active: z.boolean(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    if (!SLUG_RE.test(data.slug)) throw new Error("The link can only contain lowercase letters, numbers and dashes.");
+    const row = {
+      name: data.name,
+      slug: data.slug,
+      display_order: data.display_order,
+      icon_url: data.icon_url,
+      is_active: data.is_active,
+    };
+    if (data.id) {
+      const { data: clash } = await context.supabase.from("categories").select("id").eq("slug", data.slug).neq("id", data.id).maybeSingle();
+      if (clash) throw new Error("Another category already uses this link.");
+      const { error } = await context.supabase.from("categories").update(row).eq("id", data.id);
+      if (error) throw error;
+      return { categoryId: data.id };
+    }
+    const { data: existing } = await context.supabase.from("categories").select("id").eq("slug", data.slug).maybeSingle();
+    if (existing) throw new Error("Another category already uses this link.");
+    const { data: created, error } = await context.supabase.from("categories").insert(row).select("id").single();
+    if (error) throw error;
+    return { categoryId: created.id };
+  });
+
+export const deleteCategory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ categoryId: z.string().uuid() }).parse(data))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { data: products, error } = await context.supabase.from("products").select("id,category_id,extra_category_ids").is("archived_at", null);
+    if (error) throw error;
+    const used = (products ?? []).filter(
+      (p) => p.category_id === data.categoryId || (p.extra_category_ids ?? []).includes(data.categoryId),
+    );
+    if (used.length) throw new Error(`This category is used by ${used.length} product${used.length === 1 ? "" : "s"}. Move or remove them first.`);
+    const { error: deleteError } = await context.supabase.from("categories").delete().eq("id", data.categoryId);
+    if (deleteError) throw deleteError;
+    return { ok: true };
+  });
+
+export const saveProductTypes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        categoryId: z.string().uuid(),
+        types: z
+          .array(z.object({ name: z.string().min(1).max(80), display_order: z.number().int().min(0).max(99) }))
+          .max(30),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    // Product types are only referenced by name, so replacing the set is safe.
+    const { error: clearError } = await context.supabase.from("product_types").delete().eq("category_id", data.categoryId);
+    if (clearError) throw clearError;
+    const rows = data.types
+      .map((t) => t.name.trim())
+      .filter(Boolean)
+      .map((name, index) => ({ category_id: data.categoryId, name, display_order: index }));
+    if (rows.length) {
+      const { error } = await context.supabase.from("product_types").insert(rows);
       if (error) throw error;
     }
     return { ok: true };
