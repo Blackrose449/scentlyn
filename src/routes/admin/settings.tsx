@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { Json } from "@/integrations/supabase/types";
-import { getAdminSettings, saveCategories, saveDeliveryZone, saveSettings } from "@/lib/admin.functions";
+import { getAdminSettings, saveDeliveryZone, saveSettings } from "@/lib/admin.functions";
 import { money, parseCampaigns, type Campaign } from "@/lib/storefront";
 
 export const Route = createFileRoute("/admin/settings")({ component: SettingsPage });
@@ -72,12 +72,10 @@ function SettingsPage() {
       <Tabs defaultValue="homepage">
         <TabsList className="mb-4 flex-wrap">
           <TabsTrigger value="homepage">Homepage</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
           <TabsTrigger value="zones">Delivery zones</TabsTrigger>
           <TabsTrigger value="store">Store info</TabsTrigger>
         </TabsList>
         <TabsContent value="homepage"><HomepageTab data={data} /></TabsContent>
-        <TabsContent value="categories"><CategoriesTab data={data} /></TabsContent>
         <TabsContent value="zones"><ZonesTab data={data} /></TabsContent>
         <TabsContent value="store"><StoreTab data={data} /></TabsContent>
       </Tabs>
@@ -172,34 +170,6 @@ function HomepageTab({ data }: { data: Data }) {
           )
         }
       />
-    </AdminCard>
-  );
-}
-
-function CategoriesTab({ data }: { data: Data }) {
-  const saveFn = useServerFn(saveCategories);
-  const { saving, savedAt, run } = useSaver();
-  const [rows, setRows] = useState(data.categories.map((c) => ({ id: c.id, name: c.name, icon_url: c.icon_url ?? "" })));
-
-  function move(i: number, d: -1 | 1) {
-    setRows((r) => { const n = [...r]; const j = i + d; if (j < 0 || j >= n.length) return r; [n[i], n[j]] = [n[j]!, n[i]!]; return n; });
-  }
-
-  return (
-    <AdminCard className="space-y-4">
-      {rows.map((row, i) => (
-        <div key={row.id} className="grid gap-3 rounded-md border border-border bg-background p-3 md:grid-cols-[auto_1fr_auto] md:items-center">
-          <div className="flex gap-1 md:flex-col">
-            <Button type="button" variant="ghost" size="icon" aria-label="Move up" disabled={i === 0} onClick={() => move(i, -1)}><ArrowUp className="size-4" /></Button>
-            <Button type="button" variant="ghost" size="icon" aria-label="Move down" disabled={i === rows.length - 1} onClick={() => move(i, 1)}><ArrowDown className="size-4" /></Button>
-          </div>
-          <Field label={`Category ${i + 1}`}>
-            <Input value={row.name} onChange={(e) => setRows((r) => r.map((x) => (x.id === row.id ? { ...x, name: e.target.value } : x)))} />
-          </Field>
-          <ImageUploader multiple={false} folder="categories" label={row.icon_url ? "Change image" : "Upload image"} value={row.icon_url ? [{ id: null, url: row.icon_url }] : []} onChange={(next) => setRows((r) => r.map((x) => (x.id === row.id ? { ...x, icon_url: next[0]?.url ?? "" } : x)))} />
-        </div>
-      ))}
-      <SaveBar saving={saving} savedAt={savedAt} onSave={() => run(() => saveFn({ data: { categories: rows.map((r, i) => ({ id: r.id, name: r.name.trim(), display_order: i, icon_url: r.icon_url || null })) } }))} />
     </AdminCard>
   );
 }

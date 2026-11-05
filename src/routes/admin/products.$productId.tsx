@@ -38,6 +38,7 @@ function ProductFormPage() {
   const [name, setName] = useState("");
   const [brand, setBrand] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [extraIds, setExtraIds] = useState<string[]>([]);
   const [subcategory, setSubcategory] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("0");
@@ -56,6 +57,7 @@ function ProductFormPage() {
     setName(p.name);
     setBrand(p.brand ?? "");
     setCategoryId(p.category_id ?? "");
+    setExtraIds((p.extra_category_ids ?? []).filter((id): id is string => Boolean(id)));
     setSubcategory(p.subcategory ?? "");
     setDescription(p.description ?? "");
     setPrice(String(p.base_price));
@@ -104,6 +106,7 @@ function ProductFormPage() {
           name: name.trim(),
           brand: brand.trim() || null,
           category_id: categoryId || null,
+          extra_category_ids: extraIds.filter((id) => id !== categoryId),
           subcategory: subcategory.trim() || null,
           description: description.trim() || null,
           base_price: Number(price) || 0,
@@ -146,10 +149,25 @@ function ProductFormPage() {
               <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="name">Name</Label><Input id="name" required minLength={2} value={name} onChange={(e) => setName(e.target.value)} /></div>
               <div className="space-y-1.5"><Label htmlFor="brand">Brand</Label><Input id="brand" value={brand} onChange={(e) => setBrand(e.target.value)} /></div>
               <div className="space-y-1.5">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">Main category</Label>
                 <select id="category" className={selectClass} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
                   {data?.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>Also show in (optional)</Label>
+                <div className="flex flex-wrap gap-2">
+                  {data?.categories.filter((c) => c.id !== categoryId).map((c) => {
+                    const on = extraIds.includes(c.id);
+                    return (
+                      <label key={c.id} className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold ${on ? "border-accent bg-accent/10 text-accent" : "border-border"}`}>
+                        <input type="checkbox" className="size-4" checked={on} onChange={() => setExtraIds((ids) => (on ? ids.filter((x) => x !== c.id) : [...ids, c.id]))} />
+                        {c.name}
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground">The product appears in its main category and every ticked one.</p>
               </div>
               <div className="space-y-1.5"><Label htmlFor="sub">Subcategory</Label><Input id="sub" placeholder="e.g. Fabric softener" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} /></div>
               <div className="space-y-1.5"><Label htmlFor="size">Size / option (main product)</Label><Input id="size" placeholder="e.g. 52 sheets, 2kg" value={sizeLabel} onChange={(e) => setSizeLabel(e.target.value)} /></div>
