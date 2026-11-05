@@ -13,6 +13,7 @@ export function stockFor(product: StoreProduct) { return product.variants.length
 
 /* ---- Categories: the categories table is the single source of truth ---- */
 export type CategoryLink = { slug: string; name: string };
+export type CategoryLite = Pick<StoreCategory, "id" | "name" | "slug" | "display_order" | "is_active" | "icon_url">;
 /** Rendered only until the live category list arrives (prevents a blank header while loading). */
 export const FALLBACK_CATEGORIES: CategoryLink[] = [
   { slug: "laundry", name: "Laundry" },
@@ -20,7 +21,7 @@ export const FALLBACK_CATEGORIES: CategoryLink[] = [
   { slug: "toiletries", name: "Bathroom" },
   { slug: "fragrance", name: "Fragrance" },
 ];
-export function activeCategories(categories: StoreCategory[]): StoreCategory[] {
+export function activeCategories(categories: CategoryLite[]): CategoryLite[] {
   return categories
     .filter((c) => c.is_active)
     .sort((a, b) => a.display_order - b.display_order || a.name.localeCompare(b.name));
@@ -57,7 +58,7 @@ export type StoreTypeRef = { category_id: string; name: string; display_order?: 
  * category or one of its extra categories matches; product types are only counted under
  * a product's main category.
  */
-export function buildTypeGroups(products: StoreProduct[], categories: StoreCategory[], types: StoreTypeRef[], only?: string): TypeGroup[] {
+export function buildTypeGroups(products: StoreProduct[], categories: CategoryLite[], types: StoreTypeRef[], only?: string): TypeGroup[] {
   return activeCategories(categories)
     .filter((c) => !only || c.slug === only)
     .map((c) => {
