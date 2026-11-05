@@ -161,7 +161,7 @@ function ProductFormPage() {
                     const on = extraIds.includes(c.id);
                     return (
                       <label key={c.id} className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold ${on ? "border-accent bg-accent/10 text-accent" : "border-border"}`}>
-                        <input type="checkbox" className="accent-[#16324F]" checked={on} onChange={() => setExtraIds((ids) => (on ? ids.filter((x) => x !== c.id) : [...ids, c.id]))} />
+                        <input type="checkbox" className="size-4" checked={on} onChange={() => setExtraIds((ids) => (on ? ids.filter((x) => x !== c.id) : [...ids, c.id]))} />
                         {c.name}
                       </label>
                     );
