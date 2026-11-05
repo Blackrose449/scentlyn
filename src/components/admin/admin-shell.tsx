@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ShoppingCart, Package, Users, Settings as SettingsIcon, Menu, X, LogOut, Store } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Tags, Users, Settings as SettingsIcon, Menu, X, LogOut, Store } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ const NAV = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart, exact: false },
   { to: "/admin/products", label: "Products", icon: Package, exact: false },
+  { to: "/admin/categories", label: "Categories", icon: Tags, exact: false },
   { to: "/admin/customers", label: "Customers", icon: Users, exact: false },
   { to: "/admin/settings", label: "Settings", icon: SettingsIcon, exact: false },
 ] as const;
