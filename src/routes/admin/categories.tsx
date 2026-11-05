@@ -74,14 +74,13 @@ function CategoriesView({ data }: { data: Data }) {
     });
 
   const setTypesFor = (key: string, next: string[]) => setTypes((t) => ({ ...t, [key]: next }));
-  const moveType = (key: string, index: number, direction: -1 | 1) =>
-    setTypesFor(key, (types[key] ?? []).map((n, i) => [n, i] as const).filter(([, i]) => i !== index + direction || true).length ? (() => {
-      const list = [...(types[key] ?? [])];
-      const j = index + direction;
-      if (j < 0 || j >= list.length) return list;
-      [list[index], list[j]] = [list[j]!, list[index]!];
-      return list;
-    })() : []);
+  const moveType = (key: string, index: number, direction: -1 | 1) => {
+    const list = [...(types[key] ?? [])];
+    const j = index + direction;
+    if (j < 0 || j >= list.length) return;
+    [list[index], list[j]] = [list[j]!, list[index]!];
+    setTypesFor(key, list);
+  };
 
   function addCategory() {
     setRows((r) => [...r, { key: uid(), id: null, name: "", slug: "", slugEdited: false, icon_url: "", is_active: true }]);
