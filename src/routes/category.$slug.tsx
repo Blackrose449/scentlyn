@@ -39,7 +39,7 @@ function CategoryPage(){
     <div className="mt-8 grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
       <aside className="min-w-0 lg:sticky lg:top-4 lg:self-start">
         <p className="mb-3 text-xs font-bold uppercase">Shop by type</p>
-        <TypeFilter groups={groups} total={data.products.length} category={category} type={type} onChange={pick}/>
+        <TypeFilter groups={groups} category={category} type={type} onChange={pick}/>
       </aside>
       <div className="min-w-0">
         <div className="flex items-end justify-between gap-4">
