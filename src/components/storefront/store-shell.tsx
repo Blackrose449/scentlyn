@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, Search, ShoppingBag, UserRound, Truck, ShieldCheck, CreditCard, Instagram, Facebook, MessageCircle, X } from "lucide-react";
+import { Menu, Search, UserRound, Truck, ShieldCheck, CreditCard, Instagram, Facebook, MessageCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getStorefrontHome } from "@/lib/storefront.functions";
 import { activeCategories, FALLBACK_CATEGORIES, settingText, type CategoryLink } from "@/lib/storefront";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
+import cartIcon from "@/assets/scentlyn-cart-icon.png.asset.json";
 
 /** Categories come from the categories table (ordered, active only); fallback covers the load flash. */
 function useCategoryLinks(): CategoryLink[] {
@@ -39,7 +40,7 @@ export function StoreHeader() {
           <Button variant="ghost" size="icon" aria-label="Search products"><Search/></Button>
           <Button variant="ghost" size="icon" aria-label="Account" className="hidden sm:inline-flex"><UserRound/></Button>
           <Button variant="ghost" size="icon" aria-label={`Cart with ${count} items`} asChild className="relative">
-            <Link to="/cart"><ShoppingBag/>{count > 0 && <span className="absolute right-0 top-0 grid size-4 place-items-center rounded-full bg-accent text-[9px] font-bold text-accent-foreground">{count > 9 ? "9+" : count}</span>}</Link>
+            <Link to="/cart"><img src={cartIcon.url} alt="" aria-hidden="true" className="size-7 object-contain"/>{count > 0 && <span className="absolute right-0 top-0 grid size-4 place-items-center rounded-full bg-accent text-[9px] font-bold text-accent-foreground">{count > 9 ? "9+" : count}</span>}</Link>
           </Button>
         </div>
       </div>
