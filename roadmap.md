@@ -1,10 +1,11 @@
 # Current storefront refinements
 
-- [ ] Products can belong to more than one category (extra_category_ids + admin tick boxes + storefront filters)
-- [ ] Default variant is the first one set in admin; cards show "From Ksh X"; prices match the selected size
-- [ ] "Continue shopping" returns to the last browsed shop page, falling back to All products
-- [ ] Categories fully managed in Admin → Categories (add, rename, slug, image, reorder, hide, delete, product types) and DB-driven everywhere
+- [x] Products can belong to more than one category (extra_category_ids + admin tick boxes + storefront filters)
+- [x] Default variant is the first one set in admin; cards show "From Ksh X"; prices match the selected size
+- [x] "Continue shopping" returns to the last browsed shop page, falling back to All products
+- [x] Categories fully managed in Admin → Categories (add, rename, slug, image, reorder, hide, delete, product types) and DB-driven everywhere
 
+- [ ] Rest of item 4 and item 5 from the uploaded brief (text was cut off — waiting on the client)
 - [x] Restore a scent-story image beneath Favourites
 - [x] Rename the Toiletries category to Bathroom across the storefront
 - [x] Remove the gold mark and strengthen the Scentlyn wordmark
