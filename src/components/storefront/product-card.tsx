@@ -3,7 +3,7 @@ import { ArrowRight, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
 import type { StoreProduct } from "@/lib/storefront.functions";
-import { availablePrice, money, productPath, stockFor } from "@/lib/storefront";
+import { money, productCardPrice, productPath, stockFor } from "@/lib/storefront";
 
 export function ProductCard({product}:{product:StoreProduct}) {
   const cart = useCart(); const path = productPath(product); const image = product.images[0]?.url ?? null; const stock = stockFor(product); const requiresChoice = product.variants.length > 0;
@@ -13,7 +13,7 @@ export function ProductCard({product}:{product:StoreProduct}) {
       {image ? <img src={image} alt={product.name} loading="lazy" decoding="async" className="h-full w-full object-contain p-3 transition-transform duration-300 group-hover:scale-[1.03]"/> : <div className="grid h-full place-items-center text-muted-foreground"><ImageIcon className="size-10"/><span className="sr-only">Image coming soon</span></div>}
       <div className="absolute left-2 top-2 flex flex-col items-start gap-1">{product.is_best_seller && <span className="bg-accent px-2 py-1 text-[10px] font-bold uppercase text-accent-foreground">Best seller</span>}{stock !== null && stock > 0 && stock <= 5 && <span className="bg-destructive/10 px-2 py-1 text-[10px] font-bold uppercase text-destructive">Low stock</span>}</div>
     </Link>
-    <div className="flex flex-1 flex-col px-1 pb-1 pt-3"><p className="truncate text-[11px] font-bold uppercase text-muted-foreground">{product.brand ?? "Scentlyn pick"}</p><Link to="/product/$slug" params={{slug:path}} className="mt-1 line-clamp-2 min-h-10 text-sm font-medium leading-5 hover:underline">{product.name}</Link><p className="mt-2 font-bold">{product.variants.length ? `From ${money(availablePrice(product))}` : money(product.base_price)}</p>
+    <div className="flex flex-1 flex-col px-1 pb-1 pt-3"><p className="truncate text-[11px] font-bold uppercase text-muted-foreground">{product.brand ?? "Scentlyn pick"}</p><Link to="/product/$slug" params={{slug:path}} className="mt-1 line-clamp-2 min-h-10 text-sm font-medium leading-5 hover:underline">{product.name}</Link><p className="mt-2 font-bold">{money(productCardPrice(product))}</p>
       {requiresChoice ? <Button className="mt-3 w-full" asChild><Link to="/product/$slug" params={{slug:path}}>View Products <ArrowRight/></Link></Button> : <Button className="mt-3 w-full" onClick={add}>Add to cart</Button>}
     </div>
   </article>;

@@ -40,146 +40,43 @@ export const createOrder = createServerFn({ method: "POST" })
       return { ok: false as const, error: "Enter a valid Kenyan phone number." };
     }
 
-    const useTill = data.paymentMethod === "mpesa" && data.mpesaMode === "till";
-    if (useTill) {
-      const till = await readTillSettings(supabaseAdmin);
-      if (!till) return { ok: false as const, error: "Till payments are not available right now. Please choose another M-Pesa option." };
-    }
-
-    const { data: zone, error: zoneError } = await supabaseAdmin
-      .from("delivery_zones")
-      .select("id, delivery_fee, is_active")
-      .eq("id", data.deliveryZoneId)
-      .maybeSingle();
-    if (zoneError) throw zoneError;
-    if (!zone || !zone.is_active) {
-      return { ok: false as const, error: "Choose an available delivery area." };
-    }
-
-    const productIds = [...new Set(data.items.map((i) => i.productId))];
-    const { data: products, error: productError } = await supabaseAdmin
-      .from("products")
-      .select("id, name, base_price, status")
-      .in("id", productIds);
-    if (productError) throw productError;
-
-    const variantIds = data.items
-      .map((i) => i.variantId)
-      .filter((v): v is string => typeof v === "string" && v.length > 0);
-    const { data: variants, error: variantError } = variantIds.length
-      ? await supabaseAdmin
-          .from("product_variants")
-          .select("id, product_id, variant_value, price_override, stock_quantity")
-          .in("id", variantIds)
-      : { data: [], error: null };
-    if (variantError) throw variantError;
-
-    const lines: {
-      product_id: string;
-      variant_id: string | null;
-      product_name: string;
-      variant_label: string | null;
-      quantity: number;
-      unit_price: number;
-      line_total: number;
-    }[] = [];
-
-    for (const item of data.items) {
-      const product = products?.find((p) => p.id === item.productId);
-      if (!product || product.status !== "active") {
-        return { ok: false as const, error: "One of the items is no longer available." };
-      }
-
-      let unitPrice = Number(product.base_price);
-      let variantLabel: string | null = null;
-
-      if (item.variantId) {
-        const variant = variants?.find((v) => v.id === item.variantId);
-        if (!variant || variant.product_id !== product.id) {
-          return { ok: false as const, error: "One of the selected options is unavailable." };
-        }
-        if (variant.stock_quantity < item.quantity) {
-          return {
-            ok: false as const,
-            error: `${product.name} (${variant.variant_value}) only has ${variant.stock_quantity} left.`,
-          };
-        }
-        if (variant.price_override !== null) unitPrice = Number(variant.price_override);
-        variantLabel = variant.variant_value;
-      }
-
-      const lineTotal = Math.round(unitPrice * item.quantity * 100) / 100;
-      lines.push({
-        product_id: product.id,
+    const { data: result, error } = await supabaseAdmin.rpc("create_checkout_order", {
+      p_full_name: data.customer.fullName,
+      p_phone: phone,
+      p_email: data.customer.email ?? "",
+      p_delivery_zone_id: data.deliveryZoneId,
+      p_delivery_address_note: data.deliveryAddressNote ?? "",
+      p_payment_method: data.paymentMethod,
+      p_mpesa_mode: data.mpesaMode ?? "",
+      p_items: data.items.map((item) => ({
+        product_id: item.productId,
         variant_id: item.variantId ?? null,
-        product_name: product.name,
-        variant_label: variantLabel,
         quantity: item.quantity,
-        unit_price: unitPrice,
-        line_total: lineTotal,
-      });
+      })),
+    });
+    if (error) {
+      console.error("Checkout order transaction failed", error.message);
+      throw new Error("We couldn't save your order. Your cart is still here—please try again.");
     }
-
-    const subtotal = Math.round(lines.reduce((sum, l) => sum + l.line_total, 0) * 100) / 100;
-    const deliveryFee = Number(zone.delivery_fee);
-    const total = Math.round((subtotal + deliveryFee) * 100) / 100;
-
-    const { data: customer, error: customerError } = await supabaseAdmin
-      .from("customers")
-      .insert({
-        full_name: data.customer.fullName,
-        phone,
-        email: data.customer.email ?? null,
-      })
-      .select("id")
-      .single();
-    if (customerError) throw customerError;
-
-    const { data: order, error: orderError } = await supabaseAdmin
-      .from("orders")
-      .insert({
-        customer_id: customer.id,
-        status: "pending",
-        payment_method: data.paymentMethod,
-        payment_provider: useTill ? "mpesa_till" : null,
-        payment_status: data.paymentMethod === "cod" ? "pending" : "pending",
-        delivery_zone_id: zone.id,
-        delivery_address_note: data.deliveryAddressNote ?? null,
-        subtotal,
-        delivery_fee: deliveryFee,
-        total,
-      })
-      .select("id, order_number, total")
-      .single();
-    if (orderError) throw orderError;
-
-    const { error: itemsError } = await supabaseAdmin
-      .from("order_items")
-      .insert(lines.map((l) => ({ ...l, order_id: order.id })));
-    if (itemsError) {
-      await supabaseAdmin.from("orders").delete().eq("id", order.id);
-      throw itemsError;
+    if (!result || typeof result !== "object" || Array.isArray(result)) {
+      throw new Error("We couldn't confirm your order. Your cart is still here—please try again.");
     }
-
-    // Decrement stock for variant-tracked lines.
-    for (const line of lines) {
-      if (!line.variant_id) continue;
-      const variant = variants?.find((v) => v.id === line.variant_id);
-      if (!variant) continue;
-      await supabaseAdmin
-        .from("product_variants")
-        .update({ stock_quantity: variant.stock_quantity - line.quantity })
-        .eq("id", line.variant_id);
+    const order = result as Record<string, unknown>;
+    if (order["ok"] !== true) {
+      return { ok: false as const, error: typeof order["error"] === "string" ? order["error"] : "Please check your details and try again." };
     }
-
+    if (typeof order["order_id"] !== "string" || typeof order["order_number"] !== "string") {
+      throw new Error("We couldn't confirm your order. Your cart is still here—please try again.");
+    }
     return {
       ok: true as const,
-      orderId: order.id,
-      orderNumber: order.order_number,
-      subtotal,
-      deliveryFee,
-      total,
+      orderId: order["order_id"],
+      orderNumber: order["order_number"],
+      subtotal: Number(order["subtotal"]),
+      deliveryFee: Number(order["delivery_fee"]),
+      total: Number(order["total"]),
       phone,
+      tillNumber: typeof order["till_number"] === "string" ? order["till_number"] : null,
     };
   });
 
@@ -209,16 +106,22 @@ export const startMpesaPayment = createServerFn({ method: "POST" })
     const phone = normalizeKenyanPhone(rawPhone);
     if (!phone) return { ok: false as const, error: "Order has no valid phone number." };
 
-    const result = await startStkPush({
-      phone,
-      amount: Number(order.total),
-      accountReference: order.order_number,
-      description: `Scentlyn ${order.order_number}`,
-    });
+    let result;
+    try {
+      result = await startStkPush({
+        phone,
+        amount: Number(order.total),
+        accountReference: order.order_number,
+        description: `Scentlyn ${order.order_number}`,
+      });
+    } catch (cause) {
+      console.error("M-Pesa payment start failed", cause instanceof Error ? cause.message : "unknown error");
+      return { ok: false as const, error: "Your order is saved, but M-Pesa could not be reached. Retry payment from your order page." };
+    }
 
     if (!result.ok) return { ok: false as const, error: result.customerMessage };
 
-    await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin
       .from("orders")
       .update({
         payment_provider: "mpesa",
@@ -227,6 +130,10 @@ export const startMpesaPayment = createServerFn({ method: "POST" })
         payment_meta: { stk_simulated: result.simulated },
       })
       .eq("id", order.id);
+    if (updateError) {
+      console.error("Could not save M-Pesa request details", updateError.message);
+      return { ok: false as const, error: "Your order is saved. We couldn't confirm the M-Pesa prompt; retry from your order page." };
+    }
 
     return {
       ok: true as const,
@@ -258,22 +165,28 @@ export const startCardPayment = createServerFn({ method: "POST" })
     const customer = order.customers as
       | { full_name: string; phone: string; email: string | null }
       | null;
-    const siteUrl = process.env["PUBLIC_SITE_URL"] ?? "";
+    const siteUrl = process.env["PUBLIC_SITE_URL"] || "https://scentlyn.lovable.app";
 
-    const result = await startCardCharge({
-      reference: order.order_number,
-      amount: Number(order.total),
-      customerEmail: customer?.email ?? "orders@scentlyn.co.ke",
-      customerName: customer?.full_name ?? "Scentlyn customer",
-      customerPhone: customer?.phone ?? "",
-      redirectUrl: `${siteUrl}/order/${order.id}`,
-    });
+    let result;
+    try {
+      result = await startCardCharge({
+        reference: order.order_number,
+        amount: Number(order.total),
+        customerEmail: customer?.email ?? "scentlynlaundry@gmail.com",
+        customerName: customer?.full_name ?? "Scentlyn customer",
+        customerPhone: customer?.phone ?? "",
+        redirectUrl: `${siteUrl}/order/${order.id}`,
+      });
+    } catch (cause) {
+      console.error("Pesapal payment start failed", cause instanceof Error ? cause.message : "unknown error");
+      return { ok: false as const, error: "Your order is saved, but Pesapal could not be reached. Retry payment from your order page." };
+    }
 
     if (!result.ok) {
       return { ok: false as const, error: "Card payment could not be started." };
     }
 
-    await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin
       .from("orders")
       .update({
         payment_provider: result.provider,
@@ -285,6 +198,10 @@ export const startCardPayment = createServerFn({ method: "POST" })
         },
       })
       .eq("id", order.id);
+    if (updateError) {
+      console.error("Could not save Pesapal request details", updateError.message);
+      return { ok: false as const, error: "Your order is saved. We couldn't confirm the Pesapal request; retry from your order page." };
+    }
 
     return {
       ok: true as const,

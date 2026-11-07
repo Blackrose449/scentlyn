@@ -1,5 +1,9 @@
 # Current storefront refinements
 
+- [x] Show the main product's base price as the primary catalogue price; keep each variant price visible as its own option price
+- [x] Save checkout orders and stock changes atomically, and retain a retry path when online payment cannot start
+- [ ] Store Pesapal credentials securely and verify live/test payment setup after credentials and IPN details are provided
+
 - [x] Products can belong to more than one category (extra_category_ids + admin tick boxes + storefront filters)
 - [x] Default variant is the first one set in admin; cards show "From Ksh X"; prices match the selected size
 - [x] "Continue shopping" returns to the last browsed shop page, falling back to All products
