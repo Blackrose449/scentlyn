@@ -166,11 +166,12 @@ export const startCardPayment = createServerFn({ method: "POST" })
       | { full_name: string; phone: string; email: string | null }
       | null;
     const siteUrl = process.env["PUBLIC_SITE_URL"] || "https://scentlyn.lovable.app";
+    const attemptReference = `${order.order_number}-${crypto.randomUUID().slice(0, 8)}`;
 
     let result;
     try {
       result = await startCardCharge({
-        reference: order.order_number,
+        reference: attemptReference,
         amount: Number(order.total),
         customerEmail: customer?.email ?? "scentlynlaundry@gmail.com",
         customerName: customer?.full_name ?? "Scentlyn customer",
@@ -194,7 +195,7 @@ export const startCardPayment = createServerFn({ method: "POST" })
         payment_meta: {
           card_simulated: result.simulated,
           pesapal_tracking_id: result.trackingId,
-          merchant_reference: result.reference,
+          pesapal_merchant_reference: result.reference,
         },
       })
       .eq("id", order.id);

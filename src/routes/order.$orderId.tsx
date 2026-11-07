@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { CheckCircle2, Copy, Loader2, RefreshCcw, Smartphone, XCircle } from "lucide-react";
+import { CheckCircle2, Copy, CreditCard, Loader2, RefreshCcw, Smartphone, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { BackToShopLink } from "@/components/storefront/back-to-shop";
