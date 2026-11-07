@@ -72,7 +72,10 @@ async function handleIpn(request: Request) {
     });
   }
 
-  const successful = status.paid && Number(status.amount ?? 0) >= Number(order.total);
+  const successful =
+    status.paid &&
+    status.currency?.toUpperCase() === "KES" &&
+    Number(status.amount ?? 0) >= Number(order.total);
 
   const { error: updateError } = await supabaseAdmin
     .from("orders")
