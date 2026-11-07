@@ -167,6 +167,20 @@ export const startCardPayment = createServerFn({ method: "POST" })
       | null;
     const siteUrl = process.env["PUBLIC_SITE_URL"] || "https://scentlyn.lovable.app";
     const attemptReference = `${order.order_number}-${crypto.randomUUID().slice(0, 8)}`;
+    const { error: referenceError } = await supabaseAdmin
+      .from("orders")
+      .update({
+        payment_provider: "pesapal",
+        payment_meta: {
+          card_simulated: false,
+          pesapal_merchant_reference: attemptReference,
+        },
+      })
+      .eq("id", order.id);
+    if (referenceError) {
+      console.error("Could not save Pesapal payment reference", referenceError.message);
+      return { ok: false as const, error: "Your order is saved, but payment setup did not finish. Please retry from your order page." };
+    }
 
     let result;
     try {
