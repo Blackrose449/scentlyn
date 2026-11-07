@@ -85,12 +85,11 @@ export async function startStkPush(args: {
   // TODO: remove this simulation branch once Daraja credentials are stored.
   if (!key || !secret || !shortcode || !passkey || !callbackUrl) {
     return {
-      ok: true,
-      checkoutRequestId: `SIM-${crypto.randomUUID()}`,
-      merchantRequestId: `SIM-${crypto.randomUUID()}`,
-      customerMessage:
-        "M-Pesa is not connected yet. The order was saved and can be paid on delivery.",
-      simulated: true,
+      ok: false,
+      checkoutRequestId: null,
+      merchantRequestId: null,
+      customerMessage: "M-Pesa is not connected yet. Your order is saved; please retry or choose another payment method.",
+      simulated: false,
     };
   }
 
@@ -180,12 +179,12 @@ export async function startCardCharge(args: {
   // registered IPN id are stored as secrets.
   if (!key || !secret || !ipnId) {
     return {
-      ok: true,
+      ok: false,
       checkoutUrl: null,
       reference: args.reference,
       trackingId: null,
       provider: "pesapal",
-      simulated: true,
+      simulated: false,
     };
   }
 

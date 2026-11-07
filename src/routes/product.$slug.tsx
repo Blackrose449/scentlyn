@@ -50,6 +50,7 @@ function ProductView({product,related}:{product:StoreProduct;related:StoreProduc
         <p className="text-xs font-bold uppercase text-accent">{product.brand??product.category?.name??"Scentlyn pick"}</p>
         <h1 className="mt-1 break-words font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">{displayName}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{options.length} sizes available — compare and add the one you want.</p>
+        <p className="mt-2 text-lg font-bold">Main product price: {money(product.base_price)}</p>
       </header>
       <section className="mt-6" aria-label="Available sizes">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -73,7 +74,8 @@ function ProductView({product,related}:{product:StoreProduct;related:StoreProduc
       <div className="min-w-0">
         <p className="text-xs font-bold uppercase text-accent">{product.brand??product.category?.name??"Scentlyn pick"}</p>
         <h1 className="mt-1 break-words font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">{displayName}</h1>
-        <p className="mt-2 text-2xl font-extrabold">{money(single?.price??product.base_price)}{single&&<span className="ml-2 text-sm font-medium text-muted-foreground">for {single.label}</span>}</p>
+        <p className="mt-2 text-2xl font-extrabold">Main product price: {money(product.base_price)}</p>
+        {single&&<p className="mt-1 text-sm font-semibold text-muted-foreground">{money(single.price)} for {single.label}</p>}
         {single&&<p className={`mt-2 text-sm ${singleStock?"text-muted-foreground":"text-destructive"}`}>{stockLabel(single.stock)}</p>}
         <div className="mt-4 flex gap-3">
           <div className="grid h-11 grid-cols-3 border border-input bg-card"><Button variant="ghost" size="icon" onClick={()=>setQuantity(Math.max(1,quantity-1))} aria-label="Decrease quantity"><Minus/></Button><span className="grid min-w-10 place-items-center font-bold">{quantity}</span><Button variant="ghost" size="icon" onClick={()=>setQuantity(Math.min(single?Math.max(1,single.stock):50,quantity+1))} aria-label="Increase quantity"><Plus/></Button></div>

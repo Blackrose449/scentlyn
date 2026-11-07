@@ -38,10 +38,19 @@ async function handleIpn(request: Request) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const lookupRef = status.merchantReference ?? reference;
-  const query = supabaseAdmin.from("orders").select("id, total, payment_status");
-  const { data: order } = lookupRef
-    ? await query.eq("order_number", lookupRef).maybeSingle()
-    : await query.eq("payment_reference", trackingId).maybeSingle();
+  let order = lookupRef
+    ? (await supabaseAdmin.from("orders").select("id, total, payment_status").eq("order_number", lookupRef).maybeSingle()).data
+    : null;
+  if (!order && lookupRef) {
+    order = (await supabaseAdmin
+      .from("orders")
+      .select("id, total, payment_status")
+      .eq("payment_meta->>pesapal_merchant_reference", lookupRef)
+      .maybeSingle()).data;
+  }
+  if (!order) {
+    order = (await supabaseAdmin.from("orders").select("id, total, payment_status").eq("payment_reference", trackingId).maybeSingle()).data;
+  }
 
   if (!order) {
     console.error("Pesapal IPN for unknown order", lookupRef ?? trackingId);
@@ -65,7 +74,7 @@ async function handleIpn(request: Request) {
 
   const successful = status.paid && Number(status.amount ?? 0) >= Number(order.total);
 
-  await supabaseAdmin
+  const { error: updateError } = await supabaseAdmin
     .from("orders")
     .update({
       payment_status: successful ? "paid" : "failed",
@@ -82,6 +91,15 @@ async function handleIpn(request: Request) {
       },
     })
     .eq("id", order.id);
+  if (updateError) {
+    console.error("Could not save verified Pesapal payment", updateError.message);
+    return Response.json({
+      orderNotificationType: payload.OrderNotificationType ?? "IPNCHANGE",
+      orderTrackingId: trackingId,
+      orderMerchantReference: status.merchantReference ?? reference ?? "",
+      status: 500,
+    });
+  }
 
   return Response.json({
     orderNotificationType: payload.OrderNotificationType ?? "IPNCHANGE",

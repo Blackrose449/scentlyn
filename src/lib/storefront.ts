@@ -9,6 +9,7 @@ export function settingText(settings: StoreSettings, key: string, fallback = "")
 export function settingBoolean(settings: StoreSettings, key: string) { return settings[key] === true; }
 export function settingList(settings: StoreSettings, key: string): string[] { const value: Json | undefined = settings[key]; return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []; }
 export function availablePrice(product: StoreProduct) { const prices = product.variants.map((v) => v.price_override).filter((v): v is number => v !== null); return prices.length ? Math.min(product.base_price, ...prices) : product.base_price; }
+export function productCardPrice(product: { base_price: number; variants?: readonly { price_override: number | null }[] }) { return product.base_price; }
 export function stockFor(product: StoreProduct) { return product.variants.length ? product.variants.reduce((sum, v) => sum + v.stock_quantity, 0) : null; }
 
 /* ---- Categories: the categories table is the single source of truth ---- */
