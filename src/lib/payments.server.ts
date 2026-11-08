@@ -162,6 +162,7 @@ function configuredPesapalMode(): PesapalMode {
 }
 
 let workingPesapalMode: PesapalMode | null = null;
+let cachedIpnId: string | null = null;
 
 function pesapalBaseUrl(): string {
   return PESAPAL_URLS[workingPesapalMode ?? configuredPesapalMode()];
@@ -222,7 +223,6 @@ export async function checkPesapalAuth(): Promise<{ ok: boolean; mode: PesapalMo
   }
 }
 
-let cachedIpnId: string | null = null;
 
 /**
  * Resolve a Pesapal IPN id that actually belongs to this Pesapal account.

@@ -53,8 +53,23 @@ export const Route = createFileRoute("/api/public/checkout-health")({
           }
         }
 
+        const { checkPesapalAuth } = await import("@/lib/payments.server");
+        const pesapal = await checkPesapalAuth();
+        const pesapalProblem = pesapal.ok
+          ? pesapal.mode !== pesapal.configuredMode
+            ? `Pesapal keys work, but only in ${pesapal.mode} mode. Card payments will still work; set PESAPAL_ENV=${pesapal.mode} to match.`
+            : null
+          : `Pesapal refused the keys in both test and live mode (${pesapal.detail}). Re-copy PESAPAL_CONSUMER_KEY and PESAPAL_CONSUMER_SECRET from your Pesapal dashboard, then redeploy.`;
+
         return Response.json(
-          { can_save_orders: canSaveOrders, problem: problem || null, checks },
+          {
+            can_save_orders: canSaveOrders,
+            problem: problem || null,
+            can_start_card_payments: pesapal.ok,
+            pesapal_mode_in_use: pesapal.mode,
+            pesapal_problem: pesapalProblem,
+            checks,
+          },
           { headers: { "cache-control": "no-store" } },
         );
       },
