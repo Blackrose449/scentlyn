@@ -3,7 +3,8 @@
 - [x] Show the main product's base price as the primary catalogue price; keep each variant price visible as its own option price
 - [x] Save checkout orders and stock changes atomically, and retain a retry path when online payment cannot start
 - [x] Reuse the same saved checkout attempt after a delayed response to prevent duplicate orders
-- [ ] Store Pesapal credentials securely and verify live/test payment setup after credentials and IPN details are provided
+- [x] Store Pesapal Consumer Key, Consumer Secret, and IPN ID securely; keep payment mode in sandbox
+- [ ] Verify a complete sandbox payment and IPN callback; no test transaction has been submitted
 
 - [x] Products can belong to more than one category (extra_category_ids + admin tick boxes + storefront filters)
 - [x] Default variant is the first one set in admin; cards show "From Ksh X"; prices match the selected size
