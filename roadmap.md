@@ -2,6 +2,7 @@
 
 - [x] Show the main product's base price as the primary catalogue price; keep each variant price visible as its own option price
 - [x] Save checkout orders and stock changes atomically, and retain a retry path when online payment cannot start
+- [x] Reuse the same saved checkout attempt after a delayed response to prevent duplicate orders
 - [ ] Store Pesapal credentials securely and verify live/test payment setup after credentials and IPN details are provided
 
 - [x] Products can belong to more than one category (extra_category_ids + admin tick boxes + storefront filters)
