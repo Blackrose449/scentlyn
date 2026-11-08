@@ -27,6 +27,7 @@ import { Route as AdminOrdersIndexRouteImport } from './routes/admin/orders.inde
 import { Route as AdminOrdersOrderIdRouteImport } from './routes/admin/orders.$orderId'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin/products.index'
 import { Route as AdminProductsProductIdRouteImport } from './routes/admin/products.$productId'
+import { Route as ApiPublicCheckoutHealthRouteImport } from './routes/api/public/checkout-health'
 import { Route as ApiPublicMpesaCallbackRouteImport } from './routes/api/public/mpesa-callback'
 import { Route as ApiPublicPaymentWebhookRouteImport } from './routes/api/public/payment-webhook'
 
@@ -121,6 +122,11 @@ const AdminProductsProductIdRoute = AdminProductsProductIdRouteImport.update({
   path: '/products/$productId',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const ApiPublicCheckoutHealthRoute = ApiPublicCheckoutHealthRouteImport.update({
+  id: '/api/public/checkout-health',
+  path: '/api/public/checkout-health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMpesaCallbackRoute = ApiPublicMpesaCallbackRouteImport.update({
   id: '/api/public/mpesa-callback',
   path: '/api/public/mpesa-callback',
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
+  '/api/public/checkout-health': typeof ApiPublicCheckoutHealthRoute
   '/api/public/mpesa-callback': typeof ApiPublicMpesaCallbackRoute
   '/api/public/payment-webhook': typeof ApiPublicPaymentWebhookRoute
   '/admin/customers/': typeof AdminCustomersIndexRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
+  '/api/public/checkout-health': typeof ApiPublicCheckoutHealthRoute
   '/api/public/mpesa-callback': typeof ApiPublicMpesaCallbackRoute
   '/api/public/payment-webhook': typeof ApiPublicPaymentWebhookRoute
   '/admin/customers': typeof AdminCustomersIndexRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
+  '/api/public/checkout-health': typeof ApiPublicCheckoutHealthRoute
   '/api/public/mpesa-callback': typeof ApiPublicMpesaCallbackRoute
   '/api/public/payment-webhook': typeof ApiPublicPaymentWebhookRoute
   '/admin/customers/': typeof AdminCustomersIndexRoute
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/admin/customers/$customerId'
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
+    | '/api/public/checkout-health'
     | '/api/public/mpesa-callback'
     | '/api/public/payment-webhook'
     | '/admin/customers/'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/admin/customers/$customerId'
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
+    | '/api/public/checkout-health'
     | '/api/public/mpesa-callback'
     | '/api/public/payment-webhook'
     | '/admin/customers'
@@ -259,6 +270,7 @@ export interface FileRouteTypes {
     | '/admin/customers/$customerId'
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
+    | '/api/public/checkout-health'
     | '/api/public/mpesa-callback'
     | '/api/public/payment-webhook'
     | '/admin/customers/'
@@ -276,6 +288,7 @@ export interface RootRouteChildren {
   OffersIdRoute: typeof OffersIdRoute
   OrderOrderIdRoute: typeof OrderOrderIdRoute
   ProductSlugRoute: typeof ProductSlugRoute
+  ApiPublicCheckoutHealthRoute: typeof ApiPublicCheckoutHealthRoute
   ApiPublicMpesaCallbackRoute: typeof ApiPublicMpesaCallbackRoute
   ApiPublicPaymentWebhookRoute: typeof ApiPublicPaymentWebhookRoute
 }
@@ -408,6 +421,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsProductIdRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/api/public/checkout-health': {
+      id: '/api/public/checkout-health'
+      path: '/api/public/checkout-health'
+      fullPath: '/api/public/checkout-health'
+      preLoaderRoute: typeof ApiPublicCheckoutHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/mpesa-callback': {
       id: '/api/public/mpesa-callback'
       path: '/api/public/mpesa-callback'
@@ -463,6 +483,7 @@ const rootRouteChildren: RootRouteChildren = {
   OffersIdRoute: OffersIdRoute,
   OrderOrderIdRoute: OrderOrderIdRoute,
   ProductSlugRoute: ProductSlugRoute,
+  ApiPublicCheckoutHealthRoute: ApiPublicCheckoutHealthRoute,
   ApiPublicMpesaCallbackRoute: ApiPublicMpesaCallbackRoute,
   ApiPublicPaymentWebhookRoute: ApiPublicPaymentWebhookRoute,
 }
