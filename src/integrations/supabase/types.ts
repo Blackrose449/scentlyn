@@ -471,19 +471,34 @@ export type Database = {
     Functions: {
       admin_exists: { Args: never; Returns: boolean }
       claim_first_admin: { Args: never; Returns: boolean }
-      create_checkout_order: {
-        Args: {
-          p_delivery_address_note: string
-          p_delivery_zone_id: string
-          p_email: string
-          p_full_name: string
-          p_items: Json
-          p_mpesa_mode: string
-          p_payment_method: string
-          p_phone: string
-        }
-        Returns: Json
-      }
+      create_checkout_order:
+        | {
+            Args: {
+              p_delivery_address_note: string
+              p_delivery_zone_id: string
+              p_email: string
+              p_full_name: string
+              p_items: Json
+              p_mpesa_mode: string
+              p_payment_method: string
+              p_phone: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_checkout_key: string
+              p_delivery_address_note: string
+              p_delivery_zone_id: string
+              p_email: string
+              p_full_name: string
+              p_items: Json
+              p_mpesa_mode: string
+              p_payment_method: string
+              p_phone: string
+            }
+            Returns: Json
+          }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
