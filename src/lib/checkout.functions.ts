@@ -57,7 +57,7 @@ export const createOrder = createServerFn({ method: "POST" })
       })),
     });
     if (error) {
-      console.error("Checkout order transaction failed", error.message);
+      console.error("Checkout order transaction failed", error.code, error.message, error.details, error.hint);
       throw new Error("We couldn't save your order. Your cart is still here—please try again.");
     }
     if (!result || typeof result !== "object" || Array.isArray(result)) {
