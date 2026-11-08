@@ -150,7 +150,7 @@ export const startCardPayment = createServerFn({ method: "POST" })
     z.object({ orderId: z.string().uuid() }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { startCardCharge } = await import("./payments.server");
+    const { startCardCharge, cleanEnv } = await import("./payments.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: order, error } = await supabaseAdmin
@@ -167,7 +167,7 @@ export const startCardPayment = createServerFn({ method: "POST" })
     const customer = order.customers as
       | { full_name: string; phone: string; email: string | null }
       | null;
-    const siteUrl = process.env["PUBLIC_SITE_URL"] || "https://scentlyn.lovable.app";
+    const siteUrl = (cleanEnv("PUBLIC_SITE_URL") || "https://scentlyn.lovable.app").replace(/\/+$/, "");
     const attemptReference = `${order.order_number}-${crypto.randomUUID().slice(0, 8)}`;
     const { error: referenceError } = await supabaseAdmin
       .from("orders")

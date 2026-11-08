@@ -145,25 +145,84 @@ export async function startStkPush(args: {
   };
 }
 
-function pesapalBaseUrl(): string {
-  return process.env["PESAPAL_ENV"] === "production"
-    ? "https://pay.pesapal.com/v3"
-    : "https://cybqa.pesapal.com/pesapalv3";
+const PESAPAL_URLS = {
+  production: "https://pay.pesapal.com/v3",
+  sandbox: "https://cybqa.pesapal.com/pesapalv3",
+} as const;
+type PesapalMode = keyof typeof PESAPAL_URLS;
+
+/** Read an env value, stripping stray spaces/quotes that get pasted into host dashboards. */
+export function cleanEnv(name: string): string {
+  return (process.env[name] ?? "").trim().replace(/^["']+|["']+$/g, "").trim();
 }
 
-/** Pesapal API v3 bearer token (valid ~5 minutes). */
-async function getPesapalToken(key: string, secret: string): Promise<string> {
-  const res = await fetch(`${pesapalBaseUrl()}/api/Auth/RequestToken`, {
+function configuredPesapalMode(): PesapalMode {
+  const v = cleanEnv("PESAPAL_ENV").toLowerCase();
+  return v === "production" || v === "live" || v === "prod" ? "production" : "sandbox";
+}
+
+let workingPesapalMode: PesapalMode | null = null;
+let cachedIpnId: string | null = null;
+
+function pesapalBaseUrl(): string {
+  return PESAPAL_URLS[workingPesapalMode ?? configuredPesapalMode()];
+}
+
+export function pesapalCredentials() {
+  return { key: cleanEnv("PESAPAL_CONSUMER_KEY"), secret: cleanEnv("PESAPAL_CONSUMER_SECRET") };
+}
+
+async function requestPesapalToken(mode: PesapalMode, key: string, secret: string) {
+  const res = await fetch(`${PESAPAL_URLS[mode]}/api/Auth/RequestToken`, {
     method: "POST",
     headers: { "content-type": "application/json", accept: "application/json" },
     body: JSON.stringify({ consumer_key: key, consumer_secret: secret }),
   });
-  const json = (await res.json()) as { token?: string; error?: unknown };
-  if (!res.ok || !json.token) throw new Error("Pesapal auth failed");
-  return json.token;
+  const json = (await res.json().catch(() => ({}))) as {
+    token?: string;
+    error?: { code?: string; message?: string } | null;
+  };
+  return { token: res.ok ? json.token ?? null : null, status: res.status, code: json.error?.code ?? null };
 }
 
-let cachedIpnId: string | null = null;
+/**
+ * Pesapal API v3 bearer token (valid ~5 minutes). If the keys are rejected in the
+ * configured mode, the other mode is tried, so live keys with PESAPAL_ENV=sandbox
+ * (or the reverse) still work. The mode that worked is remembered.
+ */
+async function getPesapalToken(key: string, secret: string): Promise<string> {
+  const first = workingPesapalMode ?? configuredPesapalMode();
+  const firstTry = await requestPesapalToken(first, key, secret);
+  if (firstTry.token) {
+    workingPesapalMode = first;
+    return firstTry.token;
+  }
+  const other: PesapalMode = first === "production" ? "sandbox" : "production";
+  const secondTry = await requestPesapalToken(other, key, secret);
+  if (secondTry.token) {
+    console.warn(`Pesapal keys only work in ${other} mode; set PESAPAL_ENV=${other} to match.`);
+    workingPesapalMode = other;
+    cachedIpnId = null;
+    return secondTry.token;
+  }
+  throw new Error(
+    `Pesapal auth failed (${first}: ${firstTry.status} ${firstTry.code ?? ""}; ${other}: ${secondTry.status} ${secondTry.code ?? ""})`,
+  );
+}
+
+/** Health-check helper: reports only whether the keys work and in which mode. */
+export async function checkPesapalAuth(): Promise<{ ok: boolean; mode: PesapalMode | null; configuredMode: PesapalMode; detail: string | null }> {
+  const { key, secret } = pesapalCredentials();
+  const configuredMode = configuredPesapalMode();
+  if (!key || !secret) return { ok: false, mode: null, configuredMode, detail: "PESAPAL_CONSUMER_KEY or PESAPAL_CONSUMER_SECRET is missing." };
+  try {
+    await getPesapalToken(key, secret);
+    return { ok: true, mode: workingPesapalMode, configuredMode, detail: null };
+  } catch (err) {
+    return { ok: false, mode: null, configuredMode, detail: err instanceof Error ? err.message : "unknown error" };
+  }
+}
+
 
 /**
  * Resolve a Pesapal IPN id that actually belongs to this Pesapal account.
@@ -172,8 +231,8 @@ let cachedIpnId: string | null = null;
  */
 async function resolvePesapalIpnId(token: string): Promise<string | null> {
   if (cachedIpnId) return cachedIpnId;
-  const configured = process.env["PESAPAL_IPN_ID"]?.trim() || null;
-  const siteUrl = (process.env["PUBLIC_SITE_URL"] || "https://scentlyn.lovable.app").replace(/\/+$/, "");
+  const configured = cleanEnv("PESAPAL_IPN_ID") || null;
+  const siteUrl = (cleanEnv("PUBLIC_SITE_URL") || "https://scentlyn.lovable.app").replace(/\/+$/, "");
   const webhookUrl = `${siteUrl}/api/public/payment-webhook`;
   const headers = { Authorization: `Bearer ${token}`, accept: "application/json" };
 
@@ -209,8 +268,7 @@ export async function startCardCharge(args: {
   customerPhone: string;
   redirectUrl: string;
 }): Promise<CardInitResult> {
-  const key = process.env["PESAPAL_CONSUMER_KEY"];
-  const secret = process.env["PESAPAL_CONSUMER_SECRET"];
+  const { key, secret } = pesapalCredentials();
   if (!key || !secret) {
     return {
       ok: false,
@@ -297,8 +355,7 @@ export type PesapalStatus = {
 export async function getPesapalTransactionStatus(
   orderTrackingId: string,
 ): Promise<PesapalStatus> {
-  const key = process.env["PESAPAL_CONSUMER_KEY"];
-  const secret = process.env["PESAPAL_CONSUMER_SECRET"];
+  const { key, secret } = pesapalCredentials();
 
   const empty: PesapalStatus = {
     ok: false,
