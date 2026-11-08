@@ -24,6 +24,7 @@ const checkoutSchema = z.object({
   deliveryAddressNote: z.string().trim().max(500).nullable().optional(),
   paymentMethod: z.enum(["mpesa", "card", "cod"]),
   mpesaMode: z.enum(["stk", "till"]).optional(),
+  checkoutKey: z.string().uuid(),
   items: z.array(cartItemSchema).min(1).max(50),
 });
 
@@ -48,6 +49,7 @@ export const createOrder = createServerFn({ method: "POST" })
       p_delivery_address_note: data.deliveryAddressNote ?? "",
       p_payment_method: data.paymentMethod,
       p_mpesa_mode: data.mpesaMode ?? "",
+      p_checkout_key: data.checkoutKey,
       p_items: data.items.map((item) => ({
         product_id: item.productId,
         variant_id: item.variantId ?? null,
