@@ -163,6 +163,44 @@ async function getPesapalToken(key: string, secret: string): Promise<string> {
   return json.token;
 }
 
+let cachedIpnId: string | null = null;
+
+/**
+ * Resolve a Pesapal IPN id that actually belongs to this Pesapal account.
+ * Uses PESAPAL_IPN_ID when Pesapal recognises it; otherwise reuses or registers
+ * the IPN for our webhook URL, so a wrong/stale id can't block card checkout.
+ */
+async function resolvePesapalIpnId(token: string): Promise<string | null> {
+  if (cachedIpnId) return cachedIpnId;
+  const configured = process.env["PESAPAL_IPN_ID"]?.trim() || null;
+  const siteUrl = (process.env["PUBLIC_SITE_URL"] || "https://scentlyn.lovable.app").replace(/\/+$/, "");
+  const webhookUrl = `${siteUrl}/api/public/payment-webhook`;
+  const headers = { Authorization: `Bearer ${token}`, accept: "application/json" };
+
+  try {
+    const listRes = await fetch(`${pesapalBaseUrl()}/api/URLSetup/GetIpnList`, { headers });
+    const list = (await listRes.json().catch(() => [])) as Array<{ ipn_id?: string; url?: string }>;
+    if (Array.isArray(list)) {
+      const byId = configured ? list.find((x) => x.ipn_id === configured) : undefined;
+      if (byId?.ipn_id) return (cachedIpnId = byId.ipn_id);
+      const byUrl = list.find((x) => x.url?.replace(/\/+$/, "") === webhookUrl);
+      if (byUrl?.ipn_id) return (cachedIpnId = byUrl.ipn_id);
+    }
+
+    const regRes = await fetch(`${pesapalBaseUrl()}/api/URLSetup/RegisterIPN`, {
+      method: "POST",
+      headers: { ...headers, "content-type": "application/json" },
+      body: JSON.stringify({ url: webhookUrl, ipn_notification_type: "GET" }),
+    });
+    const reg = (await regRes.json().catch(() => ({}))) as { ipn_id?: string };
+    if (reg.ipn_id) return (cachedIpnId = reg.ipn_id);
+    console.error("Pesapal IPN registration failed", regRes.status);
+  } catch (err) {
+    console.error("Pesapal IPN lookup failed", err instanceof Error ? err.message : "unknown");
+  }
+  return configured;
+}
+
 export async function startCardCharge(args: {
   reference: string;
   amount: number;
@@ -173,11 +211,7 @@ export async function startCardCharge(args: {
 }): Promise<CardInitResult> {
   const key = process.env["PESAPAL_CONSUMER_KEY"];
   const secret = process.env["PESAPAL_CONSUMER_SECRET"];
-  const ipnId = process.env["PESAPAL_IPN_ID"];
-
-  // TODO: remove this simulation branch once the Pesapal credentials and the
-  // registered IPN id are stored as secrets.
-  if (!key || !secret || !ipnId) {
+  if (!key || !secret) {
     return {
       ok: false,
       checkoutUrl: null,
@@ -189,6 +223,7 @@ export async function startCardCharge(args: {
   }
 
   const token = await getPesapalToken(key, secret);
+  const ipnId = await resolvePesapalIpnId(token);
   const [firstName, ...rest] = args.customerName.trim().split(/\s+/);
 
   const res = await fetch(`${pesapalBaseUrl()}/api/Transactions/SubmitOrderRequest`, {
