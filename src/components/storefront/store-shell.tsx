@@ -6,7 +6,8 @@ import { getStorefrontHome } from "@/lib/storefront.functions";
 import { activeCategories, FALLBACK_CATEGORIES, settingText, type CategoryLink } from "@/lib/storefront";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
-import cartIcon from "@/assets/scentlyn-cart-icon.png.asset.json";
+import cartIconUrl from "@/assets/scentlyn-cart-icon.png";
+const cartIcon = { url: cartIconUrl };
 
 /** Categories come from the categories table (ordered, active only); fallback covers the load flash. */
 function useCategoryLinks(): CategoryLink[] {
