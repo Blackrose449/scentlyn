@@ -268,6 +268,7 @@ export async function startCardCharge(args: {
   customerEmail: string;
   customerName: string;
   customerPhone: string;
+  customerAddress?: string;
   redirectUrl: string;
 }): Promise<CardInitResult> {
   const { key, secret } = pesapalCredentials();
@@ -303,6 +304,13 @@ export async function startCardCharge(args: {
       billing_address: {
         email_address: args.customerEmail,
         phone_number: args.customerPhone,
+        country_code: "KE",
+        line_1: args.customerAddress || "Kenya",
+        line_2: "",
+        city: "",
+        state: "",
+        postal_code: "",
+        zip_code: "",
         ...billingName,
       },
     }),

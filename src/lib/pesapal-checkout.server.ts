@@ -4,7 +4,7 @@ export async function startPesapalCheckout(orderId: string) {
 
     const { data: order, error } = await supabaseAdmin
       .from("orders")
-      .select("id, order_number, total, payment_status, payment_method, payment_provider, customers(full_name, phone, email)")
+      .select("id, order_number, total, delivery_address_note, payment_status, payment_method, payment_provider, customers(full_name, phone, email)")
       .eq("id", orderId)
       .maybeSingle();
     if (error) throw error;
@@ -45,6 +45,7 @@ export async function startPesapalCheckout(orderId: string) {
         customerEmail: customer?.email ?? "scentlynlaundry@gmail.com",
         customerName: customer?.full_name ?? "Scentlyn customer",
         customerPhone: customer?.phone ?? "",
+        customerAddress: order.delivery_address_note ?? "Kenya",
         redirectUrl: `${siteUrl}/order/${order.id}`,
       });
     } catch (cause) {
