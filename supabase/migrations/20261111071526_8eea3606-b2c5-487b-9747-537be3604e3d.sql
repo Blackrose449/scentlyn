@@ -1,0 +1,3 @@
+DROP POLICY IF EXISTS "product images public read" ON storage.objects;
+DO $$ DECLARE p record; BEGIN FOR p IN SELECT policyname FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND cmd = 'SELECT' AND qual = '(bucket_id = ''product-images''::text)' LOOP EXECUTE format('DROP POLICY %I ON storage.objects', p.policyname); END LOOP; END $$;
+CREATE POLICY "product images staff read" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'product-images' AND public.is_admin(auth.uid()));
