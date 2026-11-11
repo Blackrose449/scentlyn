@@ -1,11 +1,13 @@
 # Current storefront refinements
 
 ## Security hardening
-- [ ] Protect guest order status, payment retries, and receipt submissions with browser-bound authorization
-- [ ] Reject forged payment callbacks and prevent payment replays from changing fulfilled orders
-- [ ] Restrict customer insertion and unpublished catalogue data; retire public payment diagnostics
-- [ ] Patch vulnerable dependencies and verify checkout plus attacker-denial paths
-- [ ] Review deep scan results when the background scan completes
+- [x] Protect guest order status, payment retries, and receipt submissions with browser-bound authorization
+- [x] Reject forged payment callbacks and prevent payment replays from changing fulfilled orders
+- [x] Restrict customer insertion and unpublished catalogue data; retire public payment diagnostics
+- [x] Patch vulnerable dependencies and verify checkout plus attacker-denial paths (16 tests; successful COD order, outsider reads/retries/receipt writes denied; test order removed and stock restored)
+- [ ] Review deep scan results when the background scan completes (awaiting scanner notification)
+- [ ] Enable leaked-password protection in the external Supabase project and change the previously shared admin password (requires owner action)
+- [ ] Verify live Pesapal payment and return on Vercel after redeployment (requires deployment and a real payment)
 
 - [x] Route new M-Pesa payments and retries through Pesapal, retaining saved orders; verified Pesapal opens with M-Pesa available (no payment submitted)
 
