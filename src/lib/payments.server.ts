@@ -305,7 +305,7 @@ export async function startCardCharge(args: {
         email_address: args.customerEmail,
         phone_number: args.customerPhone,
         country_code: "KE",
-        line_1: args.customerAddress || "Kenya",
+        line_1: (args.customerAddress || "Kenya").replace(/[^\p{L}\p{N}_.:-]/gu, "-") || "Kenya",
         line_2: "",
         city: "",
         state: "",
