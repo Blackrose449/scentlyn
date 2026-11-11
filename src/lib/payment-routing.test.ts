@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { checkoutMpesaMode, paymentProvider } from "./payment-routing";
+import { checkoutMpesaMode, paymentProvider, pesapalBillingName } from "./payment-routing";
 
 test("M-Pesa uses Pesapal rather than direct Daraja or Till checkout", () => {
   assert.equal(paymentProvider("mpesa"), "pesapal");
@@ -13,4 +13,8 @@ test("card continues to use Pesapal", () => {
 
 test("cash on delivery does not use an online provider", () => {
   assert.equal(paymentProvider("cod"), null);
+});
+
+test("Pesapal billing names support customers with multiple surnames", () => {
+  assert.deepEqual(pesapalBillingName("Jane Mary Oduor"), { first_name: "Jane", last_name: "Mary-Oduor" });
 });

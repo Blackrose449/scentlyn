@@ -13,6 +13,8 @@
  *   PESAPAL_ENV ("sandbox" | "production"), PESAPAL_IPN_ID, PUBLIC_SITE_URL
  */
 
+import { pesapalBillingName } from "./payment-routing";
+
 export type StkPushResult = {
   ok: boolean;
   checkoutRequestId: string | null;
@@ -282,7 +284,7 @@ export async function startCardCharge(args: {
 
   const token = await getPesapalToken(key, secret);
   const ipnId = await resolvePesapalIpnId(token);
-  const [firstName, ...rest] = args.customerName.trim().split(/\s+/);
+  const billingName = pesapalBillingName(args.customerName);
 
   const res = await fetch(`${pesapalBaseUrl()}/api/Transactions/SubmitOrderRequest`, {
     method: "POST",
@@ -301,8 +303,7 @@ export async function startCardCharge(args: {
       billing_address: {
         email_address: args.customerEmail,
         phone_number: args.customerPhone,
-        first_name: firstName ?? "Scentlyn",
-        last_name: rest.join(" ") || "Customer",
+        ...billingName,
       },
     }),
   });
