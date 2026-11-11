@@ -52,10 +52,9 @@ export const getAdminAccess = createServerFn({ method: "GET" })
 export const claimFirstAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const rpc = (context.supabase as unknown as { rpc: RpcCaller }).rpc.bind(context.supabase) as RpcCaller;
-    const { data, error } = await rpc("claim_first_admin");
-    if (error) throw new Error(error.message);
-    return { isAdmin: data === true };
+    // Admin already set up: self-promotion is permanently closed. New admins are added by staff only.
+    if (context) throw new Error("Admin setup is closed. Ask an existing admin for access.");
+    return { isAdmin: false };
   });
 
 /* --------------------------------- overview -------------------------------- */
