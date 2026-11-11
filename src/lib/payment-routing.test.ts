@@ -16,5 +16,5 @@ test("cash on delivery does not use an online provider", () => {
 });
 
 test("Pesapal billing names support customers with multiple surnames", () => {
-  assert.deepEqual(pesapalBillingName("Jane Mary Oduor"), { first_name: "Jane", last_name: "Mary-Oduor" });
+  assert.deepEqual(pesapalBillingName("Jane Mary Oduor"), { first_name: "Jane", middle_name: "Mary", last_name: "Oduor" });
 });
