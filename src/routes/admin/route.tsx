@@ -20,6 +20,8 @@ export const Route = createFileRoute("/admin")({
       { name: "description", content: "Manage Scentlyn orders, products, customers and settings." },
       { property: "og:title", content: "Store manager — Scentlyn" },
       { property: "og:description", content: "Manage Scentlyn orders, products, customers and settings." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

@@ -11,7 +11,9 @@ export const Route = createFileRoute("/offers/$id")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(offerQuery(params.id)),
   head: ({ loaderData }) => {
     const title = `${loaderData?.campaign.title || "Offer"} — Scentlyn`;
-    return { meta: [{ title }, { property: "og:title", content: title }, ...(loaderData?.campaign.media_type === "image" ? [{ property: "og:image", content: loaderData.campaign.media_url }] : [])] };
+    const description = `Shop ${loaderData?.campaign.title || "current offers"} from Scentlyn, delivered across Kenya.`;
+    const image = loaderData?.campaign.media_type === "image" && loaderData.campaign.media_url.startsWith("https://") ? loaderData.campaign.media_url : null;
+    return { meta: [{ title }, { name: "description", content: description }, { property: "og:title", content: title }, { property: "og:description", content: description }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }, ...(image ? [{ property: "og:image", content: image }, { name: "twitter:image", content: image }] : [])] };
   },
   component: OfferPage,
   errorComponent: () => <OfferMessage />,
