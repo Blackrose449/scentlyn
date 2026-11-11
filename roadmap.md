@@ -1,5 +1,7 @@
 # Current storefront refinements
 
+- [ ] Route new M-Pesa payments and retries through Pesapal, retaining saved orders
+
 - [x] Show the main product's base price as the primary catalogue price; keep each variant price visible as its own option price
 - [x] Save checkout orders and stock changes atomically, and retain a retry path when online payment cannot start
 - [x] Reuse the same saved checkout attempt after a delayed response to prevent duplicate orders

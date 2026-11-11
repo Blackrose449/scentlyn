@@ -16,3 +16,4 @@
 - Checkout creates the customer, order, line items, and stock deductions in one database transaction so partial orders and overselling cannot occur.
 - Online payment starts only after the order is saved; payment failures must leave that order accessible with a retry path rather than inviting duplicate checkout submissions.
 - Checkout retries reuse a browser-scoped attempt key enforced by an advisory transaction lock, preventing duplicate order creation after delayed responses.
+- Online payment methods share a server-only Pesapal initiation helper so checkout and retries use the same provider and verified IPN path; legacy Till orders retain their receipt flow.
