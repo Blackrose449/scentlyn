@@ -53,8 +53,8 @@ export const claimFirstAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     // Admin already set up: self-promotion is permanently closed. New admins are added by staff only.
-    void context;
-    throw new Error("Admin setup is closed. Ask an existing admin for access.");
+    if (context) throw new Error("Admin setup is closed. Ask an existing admin for access.");
+    return { isAdmin: false };
   });
 
 /* --------------------------------- overview -------------------------------- */
