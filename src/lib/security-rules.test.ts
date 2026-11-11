@@ -1,5 +1,8 @@
-import { describe, expect, it } from "bun:test";
+import { describe, it } from "node:test";
+import { strict as assert } from "node:assert";
 import { ownsGuestOrder, verifiedPaymentMatches } from "./security-rules";
+
+const expect = (actual: boolean) => ({ toBe: (expected: boolean) => assert.equal(actual, expected) });
 
 describe("guest order authorization", () => {
   const key = "11111111-1111-4111-8111-111111111111";

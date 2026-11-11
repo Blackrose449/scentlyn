@@ -18,6 +18,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Sign in to manage the Scentlyn store." },
       { property: "og:title", content: "Staff sign in — Scentlyn" },
       { property: "og:description", content: "Sign in to manage the Scentlyn store." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -113,7 +115,7 @@ function AuthPage() {
       <div className="w-full max-w-sm rounded-lg border border-border bg-card p-7">
         <div className="mb-6 text-center">
           <div className="font-display text-4xl italic">
-            Scentlyn<span className="text-accent">✦</span>
+            Scentlyn
           </div>
           <p className="mt-1 text-xs font-bold uppercase tracking-widest text-muted-foreground">Store manager</p>
         </div>
