@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { checkoutMpesaMode } from "./payment-routing";
 
 /**
  * Public checkout + payment initiation server functions.
@@ -48,7 +49,7 @@ export const createOrder = createServerFn({ method: "POST" })
       p_delivery_zone_id: data.deliveryZoneId,
       p_delivery_address_note: data.deliveryAddressNote ?? "",
       p_payment_method: data.paymentMethod,
-      p_mpesa_mode: data.mpesaMode ?? "",
+      p_mpesa_mode: checkoutMpesaMode(data.paymentMethod),
       p_checkout_key: data.checkoutKey,
       p_items: data.items.map((item) => ({
         product_id: item.productId,
@@ -83,149 +84,17 @@ export const createOrder = createServerFn({ method: "POST" })
   });
 
 export const startMpesaPayment = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) =>
-    z.object({ orderId: z.string().uuid() }).parse(data),
-  )
+  .inputValidator((data: unknown) => z.object({ orderId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
-    const { startStkPush, normalizeKenyanPhone } = await import("./payments.server");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: order, error } = await supabaseAdmin
-      .from("orders")
-      .select("id, order_number, total, payment_status, payment_provider, customers(phone)")
-      .eq("id", data.orderId)
-      .maybeSingle();
-    if (error) throw error;
-    if (!order) return { ok: false as const, error: "Order not found." };
-    if (order.payment_status === "paid") {
-      return { ok: false as const, error: "This order is already paid." };
-    }
-    if (order.payment_provider === "mpesa_till") {
-      return { ok: false as const, error: "This order is paid to our Till number — no prompt is sent." };
-    }
-
-    const rawPhone = (order.customers as { phone: string } | null)?.phone ?? "";
-    const phone = normalizeKenyanPhone(rawPhone);
-    if (!phone) return { ok: false as const, error: "Order has no valid phone number." };
-
-    let result;
-    try {
-      result = await startStkPush({
-        phone,
-        amount: Number(order.total),
-        accountReference: order.order_number,
-        description: `Scentlyn ${order.order_number}`,
-      });
-    } catch (cause) {
-      console.error("M-Pesa payment start failed", cause instanceof Error ? cause.message : "unknown error");
-      return { ok: false as const, error: "Your order is saved, but M-Pesa could not be reached. Retry payment from your order page." };
-    }
-
-    if (!result.ok) return { ok: false as const, error: result.customerMessage };
-
-    const { error: updateError } = await supabaseAdmin
-      .from("orders")
-      .update({
-        payment_provider: "mpesa",
-        mpesa_checkout_request_id: result.checkoutRequestId,
-        mpesa_merchant_request_id: result.merchantRequestId,
-        payment_meta: { stk_simulated: result.simulated },
-      })
-      .eq("id", order.id);
-    if (updateError) {
-      console.error("Could not save M-Pesa request details", updateError.message);
-      return { ok: false as const, error: "Your order is saved. We couldn't confirm the M-Pesa prompt; retry from your order page." };
-    }
-
-    return {
-      ok: true as const,
-      message: result.customerMessage,
-      simulated: result.simulated,
-      checkoutRequestId: result.checkoutRequestId,
-    };
+    const { startPesapalCheckout } = await import("./pesapal-checkout.server");
+    return startPesapalCheckout(data.orderId);
   });
 
 export const startCardPayment = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) =>
-    z.object({ orderId: z.string().uuid() }).parse(data),
-  )
+  .inputValidator((data: unknown) => z.object({ orderId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
-    const { startCardCharge, cleanEnv } = await import("./payments.server");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: order, error } = await supabaseAdmin
-      .from("orders")
-      .select("id, order_number, total, payment_status, customers(full_name, phone, email)")
-      .eq("id", data.orderId)
-      .maybeSingle();
-    if (error) throw error;
-    if (!order) return { ok: false as const, error: "Order not found." };
-    if (order.payment_status === "paid") {
-      return { ok: false as const, error: "This order is already paid." };
-    }
-
-    const customer = order.customers as
-      | { full_name: string; phone: string; email: string | null }
-      | null;
-    const siteUrl = (cleanEnv("PUBLIC_SITE_URL") || "https://scentlyn.lovable.app").replace(/\/+$/, "");
-    const attemptReference = `${order.order_number}-${crypto.randomUUID().slice(0, 8)}`;
-    const { error: referenceError } = await supabaseAdmin
-      .from("orders")
-      .update({
-        payment_provider: "pesapal",
-        payment_meta: {
-          card_simulated: false,
-          pesapal_merchant_reference: attemptReference,
-        },
-      })
-      .eq("id", order.id);
-    if (referenceError) {
-      console.error("Could not save Pesapal payment reference", referenceError.message);
-      return { ok: false as const, error: "Your order is saved, but payment setup did not finish. Please retry from your order page." };
-    }
-
-    let result;
-    try {
-      result = await startCardCharge({
-        reference: attemptReference,
-        amount: Number(order.total),
-        customerEmail: customer?.email ?? "scentlynlaundry@gmail.com",
-        customerName: customer?.full_name ?? "Scentlyn customer",
-        customerPhone: customer?.phone ?? "",
-        redirectUrl: `${siteUrl}/order/${order.id}`,
-      });
-    } catch (cause) {
-      console.error("Pesapal payment start failed", cause instanceof Error ? cause.message : "unknown error");
-      return { ok: false as const, error: "Your order is saved, but Pesapal could not be reached. Retry payment from your order page." };
-    }
-
-    if (!result.ok) {
-      return { ok: false as const, error: "Card payment could not be started." };
-    }
-
-    const { error: updateError } = await supabaseAdmin
-      .from("orders")
-      .update({
-        payment_provider: result.provider,
-        payment_reference: result.trackingId ?? result.reference,
-        payment_meta: {
-          card_simulated: result.simulated,
-          pesapal_tracking_id: result.trackingId,
-          pesapal_merchant_reference: result.reference,
-        },
-      })
-      .eq("id", order.id);
-    if (updateError) {
-      console.error("Could not save Pesapal request details", updateError.message);
-      return { ok: false as const, error: "Your order is saved. We couldn't confirm the Pesapal request; retry from your order page." };
-    }
-
-    return {
-      ok: true as const,
-      checkoutUrl: result.checkoutUrl,
-      simulated: result.simulated,
-      reference: result.reference,
-    };
+    const { startPesapalCheckout } = await import("./pesapal-checkout.server");
+    return startPesapalCheckout(data.orderId);
   });
 
 export const getOrderStatus = createServerFn({ method: "GET" })
