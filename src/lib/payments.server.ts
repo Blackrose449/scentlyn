@@ -303,7 +303,6 @@ export async function startCardCharge(args: {
       billing_address: {
         email_address: args.customerEmail,
         phone_number: args.customerPhone,
-        middle_name: "",
         ...billingName,
       },
     }),
