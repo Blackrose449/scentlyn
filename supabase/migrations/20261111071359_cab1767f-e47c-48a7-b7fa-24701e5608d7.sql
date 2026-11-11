@@ -1,0 +1,15 @@
+DROP POLICY IF EXISTS "customers public insert" ON public.customers;
+REVOKE INSERT ON public.customers FROM anon;
+DROP POLICY IF EXISTS "variants public read" ON public.product_variants;
+CREATE POLICY "variants public read" ON public.product_variants FOR SELECT TO anon, authenticated USING (EXISTS (SELECT 1 FROM public.products p WHERE p.id = product_id AND p.status = 'active' AND p.archived_at IS NULL));
+DROP POLICY IF EXISTS "images public read" ON public.product_images;
+CREATE POLICY "images public read" ON public.product_images FOR SELECT TO anon, authenticated USING (EXISTS (SELECT 1 FROM public.products p WHERE p.id = product_id AND p.status = 'active' AND p.archived_at IS NULL));
+DROP POLICY IF EXISTS "product types public read" ON public.product_types;
+CREATE POLICY "product types public read" ON public.product_types FOR SELECT TO anon, authenticated USING (EXISTS (SELECT 1 FROM public.categories c WHERE c.id = category_id AND c.is_active));
+DROP POLICY IF EXISTS "zones public read" ON public.delivery_zones;
+CREATE POLICY "zones public read" ON public.delivery_zones FOR SELECT TO anon, authenticated USING (is_active);
+DROP POLICY IF EXISTS "settings public read" ON public.site_settings;
+CREATE POLICY "settings public read" ON public.site_settings FOR SELECT TO anon, authenticated USING (key IN ('hero_eyebrow','hero_headline','hero_subtext','hero_image_url','trust_badges','featured_product_ids','promo_banner_text','promo_banner_enabled','campaigns','store_phone','store_whatsapp','store_email','store_hours','store_address','social_instagram','social_facebook','social_tiktok','mpesa_till_enabled','mpesa_till_number','mpesa_till_name','store_name','tagline'));
+CREATE OR REPLACE FUNCTION public.claim_first_admin() RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$ BEGIN RETURN public.is_admin(auth.uid()); END; $$;
+REVOKE ALL ON FUNCTION public.claim_first_admin() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.claim_first_admin() TO authenticated, service_role;

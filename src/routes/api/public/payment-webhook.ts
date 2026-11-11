@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+import { verifiedPaymentMatches } from "@/lib/security-rules";
 
 /**
  * Pesapal IPN handler (API v3).
@@ -28,32 +30,17 @@ async function handleIpn(request: Request) {
     if (body) payload = { ...payload, ...body };
   }
 
-  const trackingId = payload.OrderTrackingId;
-  const reference = payload.OrderMerchantReference;
-  if (!trackingId) return new Response("Invalid payload", { status: 400 });
-
-  const { getPesapalTransactionStatus } = await import("@/lib/payments.server");
-  const status = await getPesapalTransactionStatus(trackingId);
-
+  const parsed = z.object({ OrderTrackingId: z.string().uuid(), OrderMerchantReference: z.string().max(100).optional(), OrderNotificationType: z.string().max(40).optional() }).safeParse(payload);
+  if (!parsed.success) return new Response("Invalid payload", { status: 400 });
+  const trackingId = parsed.data.OrderTrackingId;
+  const reference = parsed.data.OrderMerchantReference;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-  const lookupRef = status.merchantReference ?? reference;
-  let order = lookupRef
-    ? (await supabaseAdmin.from("orders").select("id, total, payment_status").eq("order_number", lookupRef).maybeSingle()).data
-    : null;
-  if (!order && lookupRef) {
-    order = (await supabaseAdmin
-      .from("orders")
-      .select("id, total, payment_status")
-      .eq("payment_meta->>pesapal_merchant_reference", lookupRef)
-      .maybeSingle()).data;
-  }
-  if (!order) {
-    order = (await supabaseAdmin.from("orders").select("id, total, payment_status").eq("payment_reference", trackingId).maybeSingle()).data;
-  }
+  const { data: order, error: lookupError } = await supabaseAdmin.from("orders")
+    .select("id, total, status, payment_status, payment_meta, payment_reference")
+    .eq("payment_provider", "pesapal").eq("payment_reference", trackingId).maybeSingle();
+  if (lookupError) return new Response("Please retry", { status: 503 });
 
   if (!order) {
-    console.error("Pesapal IPN for unknown order", lookupRef ?? trackingId);
     return Response.json({
       orderNotificationType: payload.OrderNotificationType ?? "IPNCHANGE",
       orderTrackingId: trackingId,
@@ -61,6 +48,9 @@ async function handleIpn(request: Request) {
       status: 200,
     });
   }
+
+  const { getPesapalTransactionStatus } = await import("@/lib/payments.server");
+  const status = await getPesapalTransactionStatus(trackingId);
 
   if (!status.ok) {
     console.error("Pesapal IPN could not be verified", trackingId);
@@ -72,10 +62,13 @@ async function handleIpn(request: Request) {
     });
   }
 
-  const successful =
-    status.paid &&
-    status.currency?.toUpperCase() === "KES" &&
-    Number(status.amount ?? 0) >= Number(order.total);
+  const meta = order.payment_meta && typeof order.payment_meta === "object" && !Array.isArray(order.payment_meta) ? order.payment_meta : {};
+  const storedReference = typeof meta["pesapal_merchant_reference"] === "string" ? meta["pesapal_merchant_reference"] : null;
+  const successful = verifiedPaymentMatches({ total: Number(order.total), reference: storedReference, trackingId: order.payment_reference }, status, trackingId);
+  // Ignore unverified/mismatched, pending, stale, and replayed notifications. Never downgrade fulfilment.
+  if (!successful || order.payment_status === "paid" || ["packing", "delivered", "cancelled"].includes(order.status)) {
+    return Response.json({ orderNotificationType: parsed.data.OrderNotificationType ?? "IPNCHANGE", orderTrackingId: trackingId, orderMerchantReference: reference ?? "", status: 200 });
+  }
 
   const { error: updateError } = await supabaseAdmin
     .from("orders")
@@ -85,6 +78,7 @@ async function handleIpn(request: Request) {
       payment_provider: "pesapal",
       payment_reference: trackingId,
       payment_meta: {
+        ...meta,
         notification_type: payload.OrderNotificationType ?? null,
         gateway_status: status.statusText,
         confirmation_code: status.confirmationCode,
@@ -93,7 +87,7 @@ async function handleIpn(request: Request) {
         currency: status.currency,
       },
     })
-    .eq("id", order.id);
+    .eq("id", order.id).eq("payment_reference", trackingId).neq("payment_status", "paid").in("status", ["pending", "paid"]);
   if (updateError) {
     console.error("Could not save verified Pesapal payment", updateError.message);
     return Response.json({

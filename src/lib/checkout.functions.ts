@@ -71,6 +71,8 @@ export const createOrder = createServerFn({ method: "POST" })
     if (typeof order["order_id"] !== "string" || typeof order["order_number"] !== "string") {
       throw new Error("We couldn't confirm your order. Your cart is still here—please try again.");
     }
+    const { grantOrderAccess } = await import("./order-access.server");
+    grantOrderAccess(order["order_id"], data.checkoutKey);
     return {
       ok: true as const,
       orderId: order["order_id"],
@@ -102,6 +104,8 @@ export const getOrderStatus = createServerFn({ method: "GET" })
     z.object({ orderId: z.string().uuid() }).parse(data),
   )
   .handler(async ({ data }) => {
+    const { assertOrderAccess } = await import("./order-access.server");
+    await assertOrderAccess(data.orderId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: order, error } = await supabaseAdmin
       .from("orders")
@@ -137,6 +141,8 @@ export const getPaymentOptions = createServerFn({ method: "GET" }).handler(async
 export const submitTillReceipt = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ orderId: z.string().uuid(), code: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{10}$/, "Enter the 10-character M-Pesa code from your SMS") }).parse(data))
   .handler(async ({ data }) => {
+    const { assertOrderAccess } = await import("./order-access.server");
+    await assertOrderAccess(data.orderId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: order, error } = await supabaseAdmin.from("orders").select("id, payment_provider, payment_status").eq("id", data.orderId).maybeSingle();
     if (error) throw error;

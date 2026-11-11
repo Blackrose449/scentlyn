@@ -1,15 +1,17 @@
 export async function startPesapalCheckout(orderId: string) {
+    const { assertOrderAccess } = await import("./order-access.server");
+    await assertOrderAccess(orderId);
     const { startCardCharge, cleanEnv } = await import("./payments.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: order, error } = await supabaseAdmin
       .from("orders")
-      .select("id, order_number, total, delivery_address_note, payment_status, payment_method, payment_provider, customers(full_name, phone, email)")
+      .select("id, order_number, total, status, payment_meta, delivery_address_note, payment_status, payment_method, payment_provider, customers(full_name, phone, email)")
       .eq("id", orderId)
       .maybeSingle();
     if (error) throw error;
     if (!order) return { ok: false as const, error: "Order not found." };
-    if (order.payment_status === "paid") {
+    if (order.payment_status === "paid" || order.status === "cancelled" || order.status === "delivered" || order.status === "packing") {
       return { ok: false as const, error: "This order is already paid." };
     }
 
@@ -22,11 +24,13 @@ export async function startPesapalCheckout(orderId: string) {
       | null;
     const siteUrl = (cleanEnv("PUBLIC_SITE_URL") || "https://scentlyn.lovable.app").replace(/\/+$/, "");
     const attemptReference = `${order.order_number}-${crypto.randomUUID().slice(0, 8)}`;
+    const existingMeta = order.payment_meta && typeof order.payment_meta === "object" && !Array.isArray(order.payment_meta) ? order.payment_meta : {};
     const { error: referenceError } = await supabaseAdmin
       .from("orders")
       .update({
         payment_provider: "pesapal",
         payment_meta: {
+          ...existingMeta,
           card_simulated: false,
           pesapal_merchant_reference: attemptReference,
         },
@@ -63,6 +67,7 @@ export async function startPesapalCheckout(orderId: string) {
         payment_provider: result.provider,
         payment_reference: result.trackingId ?? result.reference,
         payment_meta: {
+          ...existingMeta,
           card_simulated: result.simulated,
           pesapal_tracking_id: result.trackingId,
           pesapal_merchant_reference: result.reference,
