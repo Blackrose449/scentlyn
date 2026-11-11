@@ -1,5 +1,12 @@
 # Current storefront refinements
 
+## Security hardening
+- [ ] Protect guest order status, payment retries, and receipt submissions with browser-bound authorization
+- [ ] Reject forged payment callbacks and prevent payment replays from changing fulfilled orders
+- [ ] Restrict customer insertion and unpublished catalogue data; retire public payment diagnostics
+- [ ] Patch vulnerable dependencies and verify checkout plus attacker-denial paths
+- [ ] Review deep scan results when the background scan completes
+
 - [x] Route new M-Pesa payments and retries through Pesapal, retaining saved orders; verified Pesapal opens with M-Pesa available (no payment submitted)
 
 - [x] Show the main product's base price as the primary catalogue price; keep each variant price visible as its own option price
