@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, Search, UserRound, Truck, ShieldCheck, CreditCard, Instagram, Facebook, MessageCircle, X } from "lucide-react";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getStorefrontHome } from "@/lib/storefront.functions";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { shellQuery } from "@/lib/storefront-queries";
 import { activeCategories, FALLBACK_CATEGORIES, settingText, type CategoryLink } from "@/lib/storefront";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
@@ -11,7 +11,8 @@ const cartIcon = { url: cartIconUrl };
 
 /** Categories come from the categories table (ordered, active only); fallback covers the load flash. */
 function useCategoryLinks(): CategoryLink[] {
-  const { data } = useQuery({ queryKey: ["storefront-home"], queryFn: () => getStorefrontHome(), staleTime: 60_000 });
+  const client = useQueryClient();
+  const { data } = useQuery(shellQuery(client));
   if (data?.categories?.length) return activeCategories(data.categories).map((c) => ({ slug: c.slug, name: c.name }));
   return FALLBACK_CATEGORIES;
 }
@@ -57,7 +58,8 @@ export function StoreHeader() {
 }
 
 export function StoreFooter() {
-  const { data } = useQuery({ queryKey:["storefront-home"], queryFn:()=>getStorefrontHome(), staleTime:60_000 });
+  const client = useQueryClient();
+  const { data } = useQuery(shellQuery(client));
   const settings = data?.settings ?? {};
   const cats: CategoryLink[] = data?.categories?.length ? activeCategories(data.categories).map((c)=>({slug:c.slug,name:c.name})) : FALLBACK_CATEGORIES;
   const phone = settingText(settings,"store_phone"); const whatsapp = settingText(settings,"store_whatsapp");
