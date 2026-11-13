@@ -1,20 +1,18 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, Search, UserRound, Truck, ShieldCheck, CreditCard, Instagram, Facebook, MessageCircle, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getStorefrontHome } from "@/lib/storefront.functions";
 import { activeCategories, FALLBACK_CATEGORIES, settingText, type CategoryLink } from "@/lib/storefront";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
-import cartIconUrl from "@/assets/scentlyn-cart-icon.png";
+import cartIconUrl from "@/assets/scentlyn-cart-icon.webp";
 const cartIcon = { url: cartIconUrl };
 
 /** Categories come from the categories table (ordered, active only); fallback covers the load flash. */
 function useCategoryLinks(): CategoryLink[] {
   const { data } = useQuery({ queryKey: ["storefront-home"], queryFn: () => getStorefrontHome(), staleTime: 60_000 });
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (mounted && data?.categories?.length) return activeCategories(data.categories).map((c) => ({ slug: c.slug, name: c.name }));
+  if (data?.categories?.length) return activeCategories(data.categories).map((c) => ({ slug: c.slug, name: c.name }));
   return FALLBACK_CATEGORIES;
 }
 
@@ -60,10 +58,8 @@ export function StoreHeader() {
 
 export function StoreFooter() {
   const { data } = useQuery({ queryKey:["storefront-home"], queryFn:()=>getStorefrontHome(), staleTime:60_000 });
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  const settings = mounted ? data?.settings ?? {} : {};
-  const cats: CategoryLink[] = mounted && data?.categories?.length ? activeCategories(data.categories).map((c)=>({slug:c.slug,name:c.name})) : FALLBACK_CATEGORIES;
+  const settings = data?.settings ?? {};
+  const cats: CategoryLink[] = data?.categories?.length ? activeCategories(data.categories).map((c)=>({slug:c.slug,name:c.name})) : FALLBACK_CATEGORIES;
   const phone = settingText(settings,"store_phone"); const whatsapp = settingText(settings,"store_whatsapp");
   const hours = settingText(settings,"store_hours"); const email = settingText(settings,"store_email"); const address = settingText(settings,"store_address");
   const socials = [

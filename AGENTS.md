@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Keep homepage product reads scoped to featured cards and live campaign references, use compressed bundled storefront media, and preload only the homepage's main image to reduce downloads without caching private checkout data.
 - The `categories` and `product_types` tables are the single source of truth for storefront navigation and the "Shop by type" filter — never hard-code category lists in components; a pre-render fallback list exists only to avoid a header flash.
 - `products.category_id` is the main category and `extra_category_ids` holds optional extra placements. A product appears in its main and extra categories, but product types (subcategories) only count under the main category.
 - `product_variants.display_order` fixes the variant order saved in admin; the first variant is a product page's default. Never let client code default to the last variant.

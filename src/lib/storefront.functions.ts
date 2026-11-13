@@ -58,26 +58,38 @@ export const getStorefrontHome = createServerFn({ method: "GET" }).handler(async
   const db = publicClient();
   const [categoriesResult, settingsResult] = await Promise.all([
     db.from("categories").select("*").order("display_order"),
-    db.from("products").select(productSelect).eq("status", "active"),
     db.from("site_settings").select("key,value"),
   ]);
   if (categoriesResult.error) throw categoriesResult.error;
-  if (productsResult.error) throw productsResult.error;
   if (settingsResult.error) throw settingsResult.error;
   const settings: StoreSettings = {};
   for (const setting of settingsResult.data ?? []) settings[setting.key] = setting.value;
   const slugMap: CategorySlugs = new Map();
   for (const row of categoriesResult.data ?? []) slugMap.set(row.id, row.slug);
-  const products = (productsResult.data ?? []).map((row) => normalizeProduct(row, slugMap));
   const featuredIds = Array.isArray(settings["featured_product_ids"])
     ? settings["featured_product_ids"].filter((id): id is string => typeof id === "string")
     : [];
+  const liveCampaigns = parseCampaigns(settings["campaigns"]).filter((c) => campaignIsLive(c)).slice(0, 6);
+  const featuredQuery = db.from("products").select(productSelect).eq("status", "active");
+  const campaignIds = [...new Set(liveCampaigns.flatMap((c) => c.product_ids))];
+  const [productsResult, campaignResult] = await Promise.all([
+    featuredIds.length ? featuredQuery.in("id", featuredIds) : featuredQuery.eq("is_featured", true).limit(8),
+    campaignIds.length
+      ? db.from("products").select("id,name").eq("status", "active").in("id", campaignIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (productsResult.error) throw productsResult.error;
+  if (campaignResult.error) throw campaignResult.error;
+  const products = (productsResult.data ?? []).map((row) => normalizeProduct(row, slugMap));
   const featured = featuredIds.length
     ? featuredIds.map((id) => products.find((p) => p.id === id)).filter((p): p is StoreProduct => Boolean(p))
     : products.filter((p) => p.is_featured);
-  const campaigns: StoreCampaign[] = parseCampaigns(settings["campaigns"]).filter((c) => campaignIsLive(c)).slice(0, 6).map((c) => ({
+  const campaigns: StoreCampaign[] = liveCampaigns.map((c) => ({
     ...c,
-    products: c.product_ids.map((id) => products.find((p) => p.id === id)).filter((p): p is StoreProduct => Boolean(p)).map((p) => ({ id: p.id, name: p.name })),
+    products: c.product_ids.flatMap((id) => {
+      const product = campaignResult.data?.find((p) => p.id === id);
+      return product ? [{ id: product.id, name: product.name }] : [];
+    }),
   }));
   return { categories: categoriesResult.data ?? [], featured, settings, campaigns };
 });
