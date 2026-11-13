@@ -16,7 +16,7 @@ const homeQuery = queryOptions({ queryKey:["storefront-home"], queryFn:()=>getSt
 const categoryImages: Record<string,string> = {laundry:laundryImage,kitchen:kitchenImage,toiletries:toiletriesImage,fragrance:fragranceImage};
 export const Route = createFileRoute("/")({
   loader:({context})=>context.queryClient.ensureQueryData(homeQuery),
-  head:()=>({meta:[{title:"Scentlyn — Where freshness meets quality"},{name:"description",content:"Shop laundry, kitchen, bathroom and fragrance essentials delivered across Kenya."},{property:"og:title",content:"Scentlyn — Where freshness meets quality"},{property:"og:description",content:"Beautiful home and personal care essentials delivered across Kenya."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}],links:[{rel:"canonical",href:"/"}]}),
+  head:()=>({meta:[{title:"Scentlyn"},{name:"description",content:"Where freshness meets quality. Shop laundry, kitchen, bathroom and fragrance essentials delivered across Kenya."},{property:"og:title",content:"Scentlyn"},{property:"og:description",content:"Beautiful home and personal care essentials delivered across Kenya."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}],links:[{rel:"canonical",href:"/"}]}),
   component:HomePage,
   errorComponent:()=> <HomeMessage title="We’re refreshing the shelves" body="Please try again in a moment."/>,
   notFoundComponent:()=> <HomeMessage title="Welcome to Scentlyn" body="Our fresh collection is on its way."/>,
