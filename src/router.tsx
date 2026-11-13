@@ -15,6 +15,9 @@ export const getRouter = () => {
     defaultPendingMs: 100,
     defaultPendingMinMs: 0,
     defaultPreloadStaleTime: 0,
+    // Start loading the next page on hover/touch so taps open instantly on slow mobile data.
+    defaultPreload: "intent",
+    defaultPreloadDelay: 0,
   });
 
   setupRouterSsrQueryIntegration({ router, queryClient, wrapQueryClient: false });
