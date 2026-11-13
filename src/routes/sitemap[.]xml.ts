@@ -6,7 +6,7 @@ export const Route = createFileRoute("/sitemap.xml")({
     const origin = new URL(request.url).origin;
     const paths = ["/", "/category/all"];
     try {
-      const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, { auth: { persistSession: false } });
+      const sb = createClient(process.env["SUPABASE_URL"]!, process.env["SUPABASE_PUBLISHABLE_KEY"]!, { auth: { persistSession: false } });
       const { data: cats } = await sb.from("categories").select("slug").eq("is_active", true).order("display_order");
       cats?.forEach((c) => paths.push(`/category/${c.slug}`));
       const { data: prods } = await sb.from("products").select("slug").eq("is_active", true).is("archived_at", null).limit(500);
