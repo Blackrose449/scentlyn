@@ -1,6 +1,7 @@
 # Current storefront refinements
 
 ## Site speed
+- [ ] Prevent the footer appearing before page content during opening; verify delayed loading on desktop and mobile
 - [x] Measure visitor timings and reproduce homepage loading (only five homepage readings; insufficient for a reliable visitor-wide speed verdict)
 - [x] Reduce homepage catalogue work, photo download sizes, and repeat requests (bundled photos/icon reduced; SSR Query hydration eliminates initial client catalogue requests)
 - [x] Verify browsing and cart on desktop and mobile (real catalogue, cart reload, checkout delivery form; no runtime errors)
