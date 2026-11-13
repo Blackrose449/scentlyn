@@ -56,7 +56,7 @@ function normalizeProduct(row: unknown, categorySlugsById?: CategorySlugs): Stor
 
 export const getStorefrontHome = createServerFn({ method: "GET" }).handler(async () => {
   const db = publicClient();
-  const [categoriesResult, productsResult, settingsResult] = await Promise.all([
+  const [categoriesResult, settingsResult] = await Promise.all([
     db.from("categories").select("*").order("display_order"),
     db.from("products").select(productSelect).eq("status", "active"),
     db.from("site_settings").select("key,value"),
