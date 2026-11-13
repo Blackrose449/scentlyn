@@ -1,5 +1,10 @@
 # Current storefront refinements
 
+## Site speed
+- [ ] Measure visitor timings and reproduce homepage loading
+- [ ] Reduce homepage catalogue work, photo download sizes, and repeat requests
+- [ ] Verify browsing and cart on desktop and mobile
+
 ## Security hardening
 - [x] Protect guest order status, payment retries, and receipt submissions with browser-bound authorization
 - [x] Reject forged payment callbacks and prevent payment replays from changing fulfilled orders
