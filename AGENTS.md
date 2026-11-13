@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Reserve at least a viewport of storefront main content and provide a route pending skeleton so streaming or delayed page reads never bring the footer into the opening screen.
 - Hydrate the request-scoped QueryClient through router SSR Query integration; preserve the root provider so storefront data is reused without hydration mismatches or duplicate initial fetches.
 - Keep homepage product reads scoped to featured cards and live campaign references, use compressed bundled storefront media, and preload only the homepage's main image to reduce downloads without caching private checkout data.
 - The `categories` and `product_types` tables are the single source of truth for storefront navigation and the "Shop by type" filter — never hard-code category lists in components; a pre-render fallback list exists only to avoid a header flash.

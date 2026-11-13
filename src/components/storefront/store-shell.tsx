@@ -81,4 +81,4 @@ export function StoreFooter() {
 }
 function FooterLinks({title,links}:{title:string;links:CategoryLink[]}) { return <div><h3 className="font-bold">{title}</h3><ul className="mt-3 space-y-2 text-sm text-primary-foreground/75">{links.map((item)=><li key={item.slug}><Link to="/category/$slug" params={{slug:item.slug}} search={{sort:"featured"}} className="hover:text-primary-foreground">{item.name}</Link></li>)}</ul></div>; }
 
-export function StoreLayout({children}:{children:React.ReactNode}) { return <div className="min-h-screen bg-background text-foreground"><StoreHeader/><main>{children}</main><StoreFooter/></div>; }
+export function StoreLayout({children}:{children:React.ReactNode}) { return <div className="min-h-screen bg-background text-foreground"><StoreHeader/><main className="min-h-screen">{children}</main><StoreFooter/></div>; }
