@@ -1,12 +1,12 @@
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BadgeCheck, Heart, ShieldCheck, Truck } from "lucide-react";
-import heroFallback from "@/assets/scentlyn-hero-warm-home.jpg";
-import laundryImage from "@/assets/category-laundry.jpg";
-import kitchenImage from "@/assets/category-kitchen-cleaning.jpg";
-import toiletriesImage from "@/assets/category-toiletries.jpg";
-import fragranceImage from "@/assets/category-fragrance.jpg";
-import scentStoryImage from "@/assets/scent-story-home.jpg";
+import heroFallback from "@/assets/scentlyn-hero-warm-home.webp";
+import laundryImage from "@/assets/category-laundry.webp";
+import kitchenImage from "@/assets/category-kitchen-cleaning.webp";
+import toiletriesImage from "@/assets/category-toiletries.webp";
+import fragranceImage from "@/assets/category-fragrance.webp";
+import scentStoryImage from "@/assets/scent-story-home.webp";
 import { Button } from "@/components/ui/button";
 import { EmptyProducts, ProductCard } from "@/components/storefront/product-card";
 import { getStorefrontHome } from "@/lib/storefront.functions";
@@ -16,7 +16,7 @@ const homeQuery = queryOptions({ queryKey:["storefront-home"], queryFn:()=>getSt
 const categoryImages: Record<string,string> = {laundry:laundryImage,kitchen:kitchenImage,toiletries:toiletriesImage,fragrance:fragranceImage};
 export const Route = createFileRoute("/")({
   loader:({context})=>context.queryClient.ensureQueryData(homeQuery),
-  head:()=>({meta:[{title:"Scentlyn"},{name:"description",content:"Where freshness meets quality. Shop laundry, kitchen, bathroom and fragrance essentials delivered across Kenya."},{property:"og:title",content:"Scentlyn"},{property:"og:description",content:"Beautiful home and personal care essentials delivered across Kenya."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}],links:[{rel:"canonical",href:"/"}]}),
+  head:({loaderData})=>({meta:[{title:"Scentlyn"},{name:"description",content:"Where freshness meets quality. Shop laundry, kitchen, bathroom and fragrance essentials delivered across Kenya."},{property:"og:title",content:"Scentlyn"},{property:"og:description",content:"Beautiful home and personal care essentials delivered across Kenya."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}],links:[{rel:"canonical",href:"/"},{rel:"preload",as:"image",href:settingText(loaderData?.settings??{},"hero_image_url",heroFallback),fetchPriority:"high"}]}),
   component:HomePage,
   errorComponent:()=> <HomeMessage title="We’re refreshing the shelves" body="Please try again in a moment."/>,
   notFoundComponent:()=> <HomeMessage title="Welcome to Scentlyn" body="Our fresh collection is on its way."/>,
@@ -57,7 +57,8 @@ function Campaigns({campaigns}:{campaigns:StoreCampaign[]}){
   return <section aria-label="Offers" className="mx-auto max-w-7xl px-3 pt-4 sm:px-5"><div className={single?"":"-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-2 sm:mx-0 sm:px-0"}>{campaigns.map((c)=>{
     const card=<><div className="aspect-[16/9] overflow-hidden bg-secondary"><CampaignMedia c={c}/></div>{c.title&&<div className="flex items-center justify-between gap-3 bg-card px-4 py-3"><span className="font-display text-xl font-semibold">{c.title}</span>{c.products.length>0&&<span className="flex shrink-0 items-center gap-1 text-xs font-bold uppercase text-accent">Shop offer <ArrowRight className="size-4"/></span>}</div>}</>;
     const cls=`block overflow-hidden shadow-sm ${single?"":"w-[86vw] max-w-xl shrink-0 snap-start sm:w-[calc(50%-0.375rem)]"}`;
-    if(c.products.length===1){const p=c.products[0]!;return <Link key={c.id} to="/product/$slug" params={{slug:productPath(p)}} className={cls}>{card}</Link>}
+    const p=c.products[0];
+    if(c.products.length===1 && p){return <Link key={c.id} to="/product/$slug" params={{slug:productPath(p)}} className={cls}>{card}</Link>}
     if(c.products.length>1)return <Link key={c.id} to="/offers/$id" params={{id:c.id}} className={cls}>{card}</Link>;
     return <div key={c.id} className={cls}>{card}</div>;
   })}</div></section>;

@@ -1,5 +1,10 @@
 # Current storefront refinements
 
+## Site speed
+- [x] Measure visitor timings and reproduce homepage loading (only five homepage readings; insufficient for a reliable visitor-wide speed verdict)
+- [x] Reduce homepage catalogue work, photo download sizes, and repeat requests (bundled photos/icon reduced; SSR Query hydration eliminates initial client catalogue requests)
+- [x] Verify browsing and cart on desktop and mobile (real catalogue, cart reload, checkout delivery form; no runtime errors)
+
 ## Security hardening
 - [x] Protect guest order status, payment retries, and receipt submissions with browser-bound authorization
 - [x] Reject forged payment callbacks and prevent payment replays from changing fulfilled orders
