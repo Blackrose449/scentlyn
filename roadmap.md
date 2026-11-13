@@ -1,6 +1,9 @@
 # Current storefront refinements
 
 ## Site speed
+- [x] Diagnose first-visit loading dependencies without further photo reduction: remove repeat product reads within the existing freshness window, separate recommendations, slim shared navigation reads, and self-host fonts; database catalogue reads average 2.21ms
+- [x] Verify cold mobile browsing and product/cart/delivery flow at 390/1280px; product controls open in 0.22/0.17s with background reads delayed 6s, cart persists, 19 tests pass
+- [ ] Confirm customer-wide improvement after publishing/redeploying (only six homepage vital readings, no custom-domain visitor telemetry available)
 - [x] Prevent footer-first loading with reserved page space and a pending skeleton; verified delayed navigation and homepage return at 1280, 766, and 390px without runtime errors
 - [x] Measure visitor timings and reproduce homepage loading (only five homepage readings; insufficient for a reliable visitor-wide speed verdict)
 - [x] Reduce homepage catalogue work, photo download sizes, and repeat requests (bundled photos/icon reduced; SSR Query hydration eliminates initial client catalogue requests)

@@ -10,6 +10,8 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Product navigation reuses public catalogue rows only within their existing 60-second freshness window; recommendations load separately and never block purchasing, while checkout validates live prices and stock.
+- Shared storefront navigation reads categories/contact settings rather than loading homepage products; fonts ship as local Latin variable assets to remove third-party stylesheet waits.
 - Reserve at least a viewport of storefront main content and provide a route pending skeleton so streaming or delayed page reads never bring the footer into the opening screen.
 - Hydrate the request-scoped QueryClient through router SSR Query integration; preserve the root provider so storefront data is reused without hydration mismatches or duplicate initial fetches.
 - Keep homepage product reads scoped to featured cards and live campaign references, use compressed bundled storefront media, and preload only the homepage's main image to reduce downloads without caching private checkout data.

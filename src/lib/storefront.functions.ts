@@ -8,7 +8,15 @@ function publicClient() {
   const url = process.env["SUPABASE_URL"] || import.meta.env["VITE_SUPABASE_URL"];
   const key = process.env["SUPABASE_ANON_KEY"] || process.env["SUPABASE_PUBLISHABLE_KEY"] || import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
   if (!url || !key) throw new Error("Store catalogue is unavailable.");
-  return createClient<Database>(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  return createClient<Database>(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: (input, init) => {
+      const headers = new Headers(init?.headers);
+      if (key.startsWith("sb_") && headers.get("Authorization") === `Bearer ${key}`) headers.delete("Authorization");
+      headers.set("apikey", key);
+      return fetch(input, { ...init, headers });
+    } },
+  });
 }
 
 export type StoreProduct = Database["public"]["Tables"]["products"]["Row"] & {
@@ -53,6 +61,19 @@ function normalizeProduct(row: unknown, categorySlugsById?: CategorySlugs): Stor
     category_slugs: [...slugs],
   };
 }
+
+export const getStorefrontShell = createServerFn({ method: "GET" }).handler(async () => {
+  const db = publicClient();
+  const [categories, settings] = await Promise.all([
+    db.from("categories").select("*").order("display_order"),
+    db.from("site_settings").select("key,value").in("key", ["store_phone", "store_whatsapp", "store_hours", "store_email", "store_address", "social_instagram", "social_tiktok", "social_facebook"]),
+  ]);
+  if (categories.error) throw categories.error;
+  if (settings.error) throw settings.error;
+  const values: StoreSettings = {};
+  for (const setting of settings.data ?? []) values[setting.key] = setting.value;
+  return { categories: categories.data ?? [], settings: values };
+});
 
 export const getStorefrontHome = createServerFn({ method: "GET" }).handler(async () => {
   const db = publicClient();
@@ -151,9 +172,24 @@ export const getProductPage = createServerFn({ method: "GET" })
     ]);
     if (productResult.error) throw productResult.error;
     if (!productResult.data) return null;
-    const normalized = normalizeProduct(productResult.data, slugMap);
+    return { product: normalizeProduct(productResult.data, slugMap) };
+  });
+
+// Recommendations must never block opening a product or choosing a size.
+export const getRelatedProducts = createServerFn({ method: "GET" })
+  .inputValidator((data: unknown) => z.object({ productId: z.string().uuid() }).parse(data))
+  .handler(async ({ data }) => {
+    const db = publicClient();
+    const [productResult, slugMap] = await Promise.all([
+      db.from("products").select("id,category_id,extra_category_ids").eq("id", data.productId).eq("status", "active").maybeSingle(),
+      loadCategorySlugs(db),
+    ]);
+    if (productResult.error) throw productResult.error;
+    if (!productResult.data) return [] as StoreProduct[];
+    const normalized = productResult.data;
     // Related: same main category, or any of this product's extra categories.
     const categoryIds = [...new Set([normalized.category_id, ...normalized.extra_category_ids].filter((id): id is string => Boolean(id)))];
+    if (!categoryIds.length) return [] as StoreProduct[];
     const { data: related, error: relatedError } = await db
       .from("products")
       .select(productSelect)
@@ -162,7 +198,7 @@ export const getProductPage = createServerFn({ method: "GET" })
       .or(categoryIds.map((id) => `category_id.eq.${id}`).join(","))
       .limit(5);
     if (relatedError) throw relatedError;
-    return { product: normalized, related: (related ?? []).map((row) => normalizeProduct(row, slugMap)) };
+    return (related ?? []).map((row) => normalizeProduct(row, slugMap));
   });
 
 export const getDeliveryZones = createServerFn({ method: "GET" }).handler(async () => {

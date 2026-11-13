@@ -1,18 +1,21 @@
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, ImageIcon, Minus, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ProductCard } from "@/components/storefront/product-card";
-import { getProductPage, type StoreProduct } from "@/lib/storefront.functions";
+import { type StoreProduct } from "@/lib/storefront.functions";
+import { productQuery, relatedQuery, seedProductQuery } from "@/lib/storefront-queries";
 import { buildOptions, baseInfo, stockLabel, type Option } from "@/components/storefront/variant-showcase";
-import { money, productIdFromSlug, productPath, rememberShopPage } from "@/lib/storefront";
+import { money, productPath, rememberShopPage } from "@/lib/storefront";
 import { BackToShopLink } from "@/components/storefront/back-to-shop";
 import { useCart } from "@/lib/cart";
 
-const productQuery=(slug:string)=>{const productId=productIdFromSlug(slug);return queryOptions({queryKey:["product",productId],queryFn:()=>productId?getProductPage({data:{productId}}):Promise.resolve(null),staleTime:60_000})};
 export const Route=createFileRoute("/product/$slug")({
-  loader:({context,params})=>context.queryClient.ensureQueryData(productQuery(params.slug)),
+  loader:({context,params})=>{
+    seedProductQuery(context.queryClient, params.slug);
+    return context.queryClient.ensureQueryData(productQuery(params.slug));
+  },
   head:({params,loaderData})=>{const p=loaderData?.product;if(!p)return {meta:[{title:"Product unavailable — Scentlyn"},{name:"description",content:"This Scentlyn product is currently unavailable."},{property:"og:title",content:"Product unavailable — Scentlyn"},{property:"og:description",content:"This Scentlyn product is currently unavailable."},{property:"og:type",content:"product"},{name:"twitter:card",content:"summary_large_image"},{name:"robots",content:"noindex"}]};const description=p.description?.slice(0,155)??`Shop ${p.name} from Scentlyn with delivery across Kenya.`;return {meta:[{title:`${p.name} — Scentlyn`},{name:"description",content:description},{property:"og:title",content:`${p.name} — Scentlyn`},{property:"og:description",content:description},{property:"og:type",content:"product"},{name:"twitter:card",content:"summary_large_image"}],links:[{rel:"canonical",href:`/product/${params.slug}`}],scripts:[{type:"application/ld+json",children:JSON.stringify({"@context":"https://schema.org","@type":"Product",name:p.name,description:p.description??undefined,brand:p.brand?{"@type":"Brand",name:p.brand}:undefined,image:p.images.map((i)=>i.url),offers:{"@type":"Offer",priceCurrency:"KES",price:p.base_price,availability:"https://schema.org/InStock",url:`/product/${params.slug}`}})}]};},
   component:ProductPage,errorComponent:()=> <Unavailable/>,notFoundComponent:Unavailable,
 });
@@ -20,9 +23,10 @@ function ProductPage(){
   const {slug}=Route.useParams();
   const {data}=useSuspenseQuery(productQuery(slug));
   if(!data)return <Unavailable/>;
-  return <ProductView product={data.product} related={data.related}/>;
+  return <ProductView key={data.product.id} product={data.product}/>;
 }
-function ProductView({product,related}:{product:StoreProduct;related:StoreProduct[]}){
+function ProductView({product}:{product:StoreProduct}){
+  const { data: related = [] } = useQuery(relatedQuery(product.id));
   const cart=useCart();
   const options=useMemo(()=>buildOptions(product),[product]);
   const {title,size}=baseInfo(product);
@@ -41,6 +45,7 @@ function ProductView({product,related}:{product:StoreProduct;related:StoreProduc
     setAdded(option?.id??"base");window.setTimeout(()=>setAdded(null),1600);
   };
   const single=options[0]??null;
+  const mainImage=single?.image??product.images[0]?.url??undefined;
   const singleStock=single?single.stock>0:true;
   return <div className="mx-auto max-w-7xl overflow-x-clip px-4 py-4 sm:px-6 sm:py-8">
     <nav className="text-xs text-muted-foreground"><Link to="/">Home</Link> / {product.category&&<><Link to="/category/$slug" params={{slug:product.category.slug}} search={{sort:"featured"}}>{product.category.name}</Link> / </>}{displayName}</nav>
@@ -70,7 +75,7 @@ function ProductView({product,related}:{product:StoreProduct;related:StoreProduc
         </div>
       </section>
     </>:<div className="mt-3 grid min-w-0 grid-cols-1 gap-5 lg:mt-7 lg:grid-cols-[1.05fr_.95fr] lg:gap-14">
-      <div className="aspect-square bg-product">{(single?.image??product.images[0]?.url)?<img src={(single?.image??product.images[0]?.url)!} alt={displayName} width={900} height={900} className="h-full w-full object-contain p-4"/>:<div className="grid h-full place-items-center text-muted-foreground"><ImageIcon className="size-14"/><span className="sr-only">Image coming soon</span></div>}</div>
+      <div className="aspect-square bg-product">{mainImage?<img src={mainImage} alt={displayName} width={900} height={900} decoding="async" fetchPriority="high" className="h-full w-full object-contain p-4"/>:<div className="grid h-full place-items-center text-muted-foreground"><ImageIcon className="size-14"/><span className="sr-only">Image coming soon</span></div>}</div>
       <div className="min-w-0">
         <p className="text-xs font-bold uppercase text-accent">{product.brand??product.category?.name??"Scentlyn pick"}</p>
         <h1 className="mt-1 break-words font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">{displayName}</h1>
