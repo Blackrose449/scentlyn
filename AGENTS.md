@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Keep shared brand icons and WebSite identity in the root head, with page-specific sharing metadata on leaf routes so page previews never inherit the wrong image.
 - Form controls use explicit IDs/names and associated labels; repeated editor fields use LabeledField with React useId so identifiers stay unique through SSR hydration. LabeledSwitch owns a labelled native checkbox; checkout uses native selects/radios to avoid unnamed hidden fields.
 - Public home/product/category queries and catalogue-row reuse share a five-minute freshness window; recommendations never block purchasing, while checkout validates live prices and stock.
 - Shared storefront navigation loads categories/contact settings in the root loader rather than after mount; fonts ship as local Latin variable assets to remove third-party stylesheet waits.
