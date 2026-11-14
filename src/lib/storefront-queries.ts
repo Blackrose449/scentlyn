@@ -30,4 +30,4 @@ export function seedProductQuery(client: QueryClient, slug: string) {
   if (found) client.setQueryData(["product", id], { product: found.product }, { updatedAt: found.updatedAt });
 }
 
-export const relatedQuery = (productId: string) => queryOptions({ queryKey: ["related-products", productId], queryFn: () => getRelatedProducts({ data: { productId } }), staleTime: 60_000 });
+export const relatedQuery = (productId: string) => queryOptions({ queryKey: ["related-products", productId], queryFn: () => getRelatedProducts({ data: { productId } }), staleTime: STOREFRONT_STALE_TIME });
