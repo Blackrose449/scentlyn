@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
+import { LabeledSwitch } from "@/components/ui/labeled-switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { Json } from "@/integrations/supabase/types";
@@ -40,7 +40,7 @@ function SaveBar({ saving, savedAt, onSave }: { saving: boolean; savedAt: number
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
-  return <div className="space-y-1.5"><Label>{label}</Label>{children}</div>;
+  return <div className="space-y-1.5"><span className="text-sm font-medium">{label}</span>{children}</div>;
 }
 
 function useSaver() {
@@ -145,7 +145,7 @@ function HomepageTab({ data }: { data: Data }) {
       </Field>
       <div className="grid gap-3 rounded-md border border-border p-3 md:grid-cols-[1fr_auto] md:items-end">
         <Field label="Promo banner text (optional one-line strip)"><LabeledField label="Promo banner text (optional one-line strip)" hidden><Input value={promoText} onChange={(e) => setPromoText(e.target.value)} /></LabeledField></Field>
-        <label className="flex items-center gap-2 text-sm font-semibold">Show banner <Switch checked={promoOn} onCheckedChange={setPromoOn} /></label>
+        <div className="flex items-center gap-2 text-sm font-semibold">Show banner <LabeledSwitch checked={promoOn} onCheckedChange={setPromoOn}  label="Show banner" /></div>
       </div>
       <CampaignsEditor campaigns={campaigns} setCampaigns={setCampaigns} products={data.products} />
       <SaveBar
@@ -192,10 +192,10 @@ function ZonesTab({ data }: { data: Data }) {
         <div key={row.key} className="grid gap-3 md:grid-cols-[1fr_9rem_7rem] md:items-center">
           <LabeledField label="Zone name" hidden><Input aria-label="Zone name" value={row.zone_name} onChange={(e) => setRows((r) => r.map((x) => (x.key === row.key ? { ...x, zone_name: e.target.value } : x)))} /></LabeledField>
           <LabeledField label="Delivery fee" hidden><Input aria-label="Delivery fee" type="number" min={0} value={row.fee} onChange={(e) => setRows((r) => r.map((x) => (x.key === row.key ? { ...x, fee: e.target.value } : x)))} /></LabeledField>
-          <label className="flex items-center gap-2 text-sm">
-            <Switch checked={row.is_active} onCheckedChange={(v) => setRows((r) => r.map((x) => (x.key === row.key ? { ...x, is_active: v } : x)))} />
+          <div className="flex items-center gap-2 text-sm">
+            <LabeledSwitch checked={row.is_active} onCheckedChange={(v) => setRows((r) => r.map((x) => (x.key === row.key ? { ...x, is_active: v } : x)))}  label="Active" />
             <StatusBadge status={row.is_active ? "active" : "draft"} />
-          </label>
+          </div>
         </div>
       ))}
       <Button type="button" variant="outline" size="sm" onClick={() => setRows((r) => [...r, { key: crypto.randomUUID(), id: null, zone_name: "", fee: "0", is_active: true }])}>
@@ -243,17 +243,17 @@ function StoreTab({ data }: { data: Data }) {
             <p className="text-sm font-bold">M-Pesa Till number</p>
             <p className="text-xs text-muted-foreground">When on, customers who choose M-Pesa can also pay to this Till. Switch it off once Pesapal is live. Paid orders still need to be marked as paid on the order page after you check your M-Pesa statement.</p>
           </div>
-          <Switch checked={tillOn} onCheckedChange={setTillOn} aria-label="Enable Till payments" />
+          <LabeledSwitch checked={tillOn} onCheckedChange={setTillOn} aria-label="Enable Till payments"  label="Enable Till payments" />
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Till number"><LabeledField label="e.g. 5123456" hidden><Input inputMode="numeric" value={tillNumber} onChange={(e) => setTillNumber(e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="e.g. 5123456" /></LabeledField></Field>
-          <Field label="Name shown to customers (optional)"><LabeledField label="Business name on the Till" hidden><Input value={tillName} onChange={(e) => setTillName(e.target.value)} placeholder="Business name on the Till" /></LabeledField></Field>
+          <Field label="Till number"><LabeledField label="Till number" hidden><Input inputMode="numeric" value={tillNumber} onChange={(e) => setTillNumber(e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="e.g. 5123456" /></LabeledField></Field>
+          <Field label="Name shown to customers (optional)"><LabeledField label="Name shown to customers (optional)" hidden><Input value={tillName} onChange={(e) => setTillName(e.target.value)} placeholder="Business name on the Till" /></LabeledField></Field>
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         {keys.map(([k, label]) => (
           <Field key={k} label={label}>
-            <LabeledField label="Store contact detail" hidden><Input value={values[k] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [k]: e.target.value }))} /></LabeledField>
+            <LabeledField label={label} hidden><Input value={values[k] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [k]: e.target.value }))} /></LabeledField>
           </Field>
         ))}
       </div>
@@ -307,7 +307,7 @@ function CampaignsEditor({ campaigns, setCampaigns, products }: { campaigns: Cam
             </Field>
             <div className="flex flex-wrap items-end gap-4">
               <Field label="Ends on (optional)"><LabeledField label="Campaign end date" hidden><Input type="date" value={c.ends_at} onChange={(e) => update(c.id, { ends_at: e.target.value })} /></LabeledField></Field>
-              <label className="flex items-center gap-2 pb-2 text-sm font-semibold">Show on homepage <Switch checked={c.enabled} onCheckedChange={(v) => update(c.id, { enabled: v })} /></label>
+              <div className="flex items-center gap-2 pb-2 text-sm font-semibold">Show on homepage <LabeledSwitch checked={c.enabled} onCheckedChange={(v) => update(c.id, { enabled: v })}  label="Show on homepage" /></div>
             </div>
           </div>
         );

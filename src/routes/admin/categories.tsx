@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
+import { LabeledSwitch } from "@/components/ui/labeled-switch";
 import { deleteCategory, getAdminCategories, saveCategory, saveProductTypes } from "@/lib/admin.functions";
 import { slugify } from "@/lib/storefront";
 
@@ -182,10 +182,10 @@ function CategoriesView({ data }: { data: Data }) {
                   <LabeledField label="Link" hidden><Input value={row.slug} placeholder={slugify(row.name) || "e.g. laundry"} onChange={(e) => update(row.key, { slug: slugify(e.target.value), slugEdited: e.target.value.length > 0 })} /></LabeledField>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <label className="flex items-center gap-2 text-sm font-semibold">
-                    <Switch checked={row.is_active} onCheckedChange={(v) => update(row.key, { is_active: v })} />
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <LabeledSwitch checked={row.is_active} onCheckedChange={(v) => update(row.key, { is_active: v })}  label="Active" />
                     {row.is_active ? <span className="flex items-center gap-1"><Eye className="size-4" /> Shown</span> : <span className="flex items-center gap-1 text-muted-foreground"><EyeOff className="size-4" /> Hidden</span>}
-                  </label>
+                  </div>
                   <Button type="button" variant="ghost" size="icon" aria-label={`Delete ${row.name || "category"}`} onClick={() => setConfirmDelete(row)}><Trash2 className="size-4" /></Button>
                 </div>
               </div>

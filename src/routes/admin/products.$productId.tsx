@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
+import { LabeledSwitch } from "@/components/ui/labeled-switch";
 import { Textarea } from "@/components/ui/textarea";
 import { getProductForm, saveProduct } from "@/lib/admin.functions";
 
@@ -161,10 +161,10 @@ function ProductFormPage() {
                   {data?.categories.filter((c) => c.id !== categoryId).map((c) => {
                     const on = extraIds.includes(c.id);
                     return (
-                      <label key={c.id} className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold ${on ? "border-accent bg-accent/10 text-accent" : "border-border"}`}>
-                        <input type="checkbox" className="size-4" checked={on} onChange={() => setExtraIds((ids) => (on ? ids.filter((x) => x !== c.id) : [...ids, c.id]))} />
+                      <div key={c.id} className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold ${on ? "border-accent bg-accent/10 text-accent" : "border-border"}`}>
+                        <input id={`extra-category-${c.id}`} name={`extraCategory-${c.id}`} type="checkbox" className="size-4" checked={on} onChange={() => setExtraIds((ids) => (on ? ids.filter((x) => x !== c.id) : [...ids, c.id]))} />
                         {c.name}
-                      </label>
+                      </div>
                     );
                   })}
                 </div>
@@ -244,8 +244,8 @@ function ProductFormPage() {
             </div>
             <label className="flex items-center justify-between gap-3 text-sm font-semibold">
               Featured product
-              <Switch checked={featured} onCheckedChange={setFeatured} />
-            </label>
+              <LabeledSwitch checked={featured} onCheckedChange={setFeatured}  label="Featured product" />
+            </div>
           </AdminCard>
         </div>
       </div>
