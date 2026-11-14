@@ -1,3 +1,4 @@
+import { LabeledField } from "@/components/ui/labeled-field";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -57,7 +58,7 @@ function ProductsPage() {
       />
       <AdminCard className="p-4">
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <Input className="sm:w-64" placeholder="Search products" value={term} onChange={(e) => setTerm(e.target.value)} />
+          <LabeledField label="Search products" hidden><Input className="sm:w-64" placeholder="Search products" value={term} onChange={(e) => setTerm(e.target.value)} /></LabeledField>
           <Button variant="ghost" size="sm" onClick={() => setShowArchived(!showArchived)}>
             {showArchived ? "Show live products" : "Show archived"}
           </Button>

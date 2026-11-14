@@ -4,7 +4,6 @@ import { z } from "zod";
 import { useEffect } from "react";
 import { EmptyProducts, ProductCard } from "@/components/storefront/product-card";
 import { Button } from "@/components/ui/button";
-import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from "@/components/ui/select";
 import { getCategoryPage } from "@/lib/storefront.functions";
 import { TypeFilter } from "@/components/storefront/type-filter";
 import { buildTypeGroups, rememberShopPage, typeName } from "@/lib/storefront";
@@ -44,7 +43,7 @@ function CategoryPage(){
       <div className="min-w-0">
         <div className="flex items-end justify-between gap-4">
           <p className="text-sm text-muted-foreground">{products.length} {products.length===1?"product":"products"}</p>
-          <div className="w-40"><p className="mb-1.5 text-xs font-bold uppercase">Sort by</p><Select value={search.sort} onValueChange={(sort)=>navigate({search:(prev)=>({...prev,sort:sort as typeof search.sort})})}><SelectTrigger className="w-full" aria-label="Sort products"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="featured">Featured</SelectItem><SelectItem value="price-low">Price: low</SelectItem><SelectItem value="price-high">Price: high</SelectItem><SelectItem value="newest">Newest</SelectItem></SelectContent></Select></div>
+          <div className="w-40"><label htmlFor="product-sort" className="mb-1.5 block text-xs font-bold uppercase">Sort by</label><select id="product-sort" name="productSort" value={search.sort} onChange={(event)=>navigate({search:(prev)=>({...prev,sort:event.target.value as typeof search.sort})})} className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"><option value="featured">Featured</option><option value="price-low">Price: low</option><option value="price-high">Price: high</option><option value="newest">Newest</option></select></div>
         </div>
         <div className="mt-4">{products.length?<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{products.map((product)=><ProductCard key={product.id} product={product}/>)}</div>:<EmptyProducts title={type||category?"Nothing matches this filter":"This collection is arriving soon"} body={type||category?"Try another product type or view everything.":"Products will appear here as soon as they are published."}/>}</div>
       </div>

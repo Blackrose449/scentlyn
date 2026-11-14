@@ -1,3 +1,4 @@
+import { LabeledField } from "@/components/ui/labeled-field";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -56,7 +57,7 @@ function OrdersPage() {
               navigate({ search: { ...search, q: term.trim() || undefined } });
             }}
           >
-            <Input placeholder="Search name, phone or order #" value={term} onChange={(e) => setTerm(e.target.value)} />
+            <LabeledField label="Search name, phone or order #" hidden><Input placeholder="Search name, phone or order #" value={term} onChange={(e) => setTerm(e.target.value)} /></LabeledField>
           </form>
         </div>
 

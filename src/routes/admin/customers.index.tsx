@@ -1,3 +1,4 @@
+import { LabeledField } from "@/components/ui/labeled-field";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -24,7 +25,7 @@ function CustomersPage() {
     <>
       <PageHeading title="Customers" description="Built from order history." />
       <AdminCard className="p-4">
-        <Input className="mb-4 sm:w-64" placeholder="Search name or phone" value={term} onChange={(e) => setTerm(e.target.value)} />
+        <LabeledField label="Search name or phone" hidden><Input className="mb-4 sm:w-64" placeholder="Search name or phone" value={term} onChange={(e) => setTerm(e.target.value)} /></LabeledField>
         {isLoading ? (
           <Skeleton className="h-60 w-full" />
         ) : rows.length ? (

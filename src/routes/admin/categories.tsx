@@ -1,3 +1,4 @@
+import { LabeledField } from "@/components/ui/labeled-field";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -174,11 +175,11 @@ function CategoriesView({ data }: { data: Data }) {
                 />
                 <div className="space-y-1.5">
                   <Label>Name</Label>
-                  <Input value={row.name} onChange={(e) => update(row.key, { name: e.target.value, slug: row.slugEdited ? row.slug : slugify(e.target.value) })} />
+                  <LabeledField label="Name" hidden><Input value={row.name} onChange={(e) => update(row.key, { name: e.target.value, slug: row.slugEdited ? row.slug : slugify(e.target.value) })} /></LabeledField>
                 </div>
                 <div className="space-y-1.5">
                   <Label>Link</Label>
-                  <Input value={row.slug} placeholder={slugify(row.name) || "e.g. laundry"} onChange={(e) => update(row.key, { slug: slugify(e.target.value), slugEdited: e.target.value.length > 0 })} />
+                  <LabeledField label="Link" hidden><Input value={row.slug} placeholder={slugify(row.name) || "e.g. laundry"} onChange={(e) => update(row.key, { slug: slugify(e.target.value), slugEdited: e.target.value.length > 0 })} /></LabeledField>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <label className="flex items-center gap-2 text-sm font-semibold">
@@ -196,7 +197,7 @@ function CategoriesView({ data }: { data: Data }) {
                     <p className="text-xs text-muted-foreground">These fill the “Shop by type” filter for this category. {count} product{count === 1 ? "" : "s"} use this category.</p>
                   </div>
                   <div className="flex gap-2">
-                    <Input
+                    <LabeledField label="New product type" hidden><Input
                       aria-label="New product type"
                       placeholder="Add a type, e.g. Stain Removers"
                       className="h-9 w-56"
@@ -209,7 +210,7 @@ function CategoriesView({ data }: { data: Data }) {
                           setNewType((t) => ({ ...t, [row.key]: "" }));
                         }
                       }}
-                    />
+                    /></LabeledField>
                     <Button
                       type="button"
                       variant="outline"

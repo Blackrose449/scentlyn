@@ -1,5 +1,5 @@
 import { ImagePlus, Loader2, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,7 @@ type Props = {
 };
 
 export function ImageUploader({ value, onChange, folder, multiple = true, label = "Upload photo", hint }: Props) {
+  const inputId = `upload-${useId()}`;
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<{ name: string; preview: string }[]>([]);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -97,7 +98,8 @@ export function ImageUploader({ value, onChange, folder, multiple = true, label 
 
   return (
     <div className="space-y-3">
-      <input
+      <label htmlFor={inputId} className="sr-only">{label}</label>
+      <input id={inputId} name={inputId}
         ref={inputRef}
         type="file"
         accept="image/*"
@@ -169,6 +171,7 @@ export const MAX_VIDEO_MB = 20;
 export function MediaUploader({ url, type, onChange, folder = "campaigns", label = "Upload image or video" }: {
   url: string; type: "image" | "video"; onChange: (url: string, type: "image" | "video") => void; folder?: string; label?: string;
 }) {
+  const inputId = `upload-${useId()}`;
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
 
@@ -191,7 +194,8 @@ export function MediaUploader({ url, type, onChange, folder = "campaigns", label
 
   return (
     <div className="space-y-2">
-      <input ref={inputRef} type="file" accept="image/*,video/mp4,video/webm" className="sr-only" onChange={(e) => void handle(e.target.files?.[0])} />
+      <label htmlFor={inputId} className="sr-only">{label}</label>
+      <input id={inputId} name={inputId} ref={inputRef} type="file" accept="image/*,video/mp4,video/webm" className="sr-only" onChange={(e) => void handle(e.target.files?.[0])} />
       <div className="flex flex-wrap items-center gap-3">
         <Button type="button" variant="outline" disabled={busy} onClick={() => inputRef.current?.click()}>
           {busy ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
