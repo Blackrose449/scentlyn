@@ -1,5 +1,9 @@
 # Current storefront refinements
 
+## Form accessibility
+- [ ] Add unique field IDs/names and matching labels across storefront and admin, including generated native controls.
+- [ ] Verify checkout autofill and form controls in the browser without placing an order.
+
 ## Site speed
 - [x] Diagnose first-visit loading dependencies without further photo reduction: remove repeat product reads within the existing freshness window, separate recommendations, slim shared navigation reads, and self-host fonts; database catalogue reads average 2.21ms
 - [x] Verify cold mobile browsing and product/cart/delivery flow at 390/1280px; product controls open in 0.22/0.17s with background reads delayed 6s, cart persists, 19 tests pass
