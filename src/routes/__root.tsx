@@ -87,9 +87,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "Scentlyn | Laundry & Household Essentials in Kenya" },
       { name: "author", content: "Scentlyn" },
       { name: "google-site-verification", content: "_218GAp_m_1MubO0mvLOGbJeg-NHxCdmS9ZJ6B81RPQ" },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Scentlyn" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
@@ -97,8 +99,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.png", type: "image/png", sizes: "96x96" },
+      { rel: "icon", href: "/favicon.ico", type: "image/x-icon", sizes: "48x48" },
+      { rel: "icon", href: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
     ],
+    scripts: [{
+      type: "application/ld+json",
+      children: JSON.stringify({ "@context": "https://schema.org", "@type": "WebSite", name: "Scentlyn", url: "https://www.scentlyn.co.ke/" }),
+    }],
   }),
   shellComponent: RootShell,
   component: RootComponent,

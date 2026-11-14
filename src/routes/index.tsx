@@ -17,7 +17,13 @@ const homeQuery = queryOptions({ queryKey:["storefront-home"], queryFn:()=>getSt
 const categoryImages: Record<string,string> = {laundry:laundryImage,kitchen:kitchenImage,toiletries:toiletriesImage,fragrance:fragranceImage};
 export const Route = createFileRoute("/")({
   loader:({context})=>context.queryClient.ensureQueryData(homeQuery),
-  head:({loaderData})=>({meta:[{title:"Scentlyn"},{name:"description",content:"Where freshness meets quality. Shop laundry, kitchen, bathroom and fragrance essentials delivered across Kenya."},{property:"og:title",content:"Scentlyn"},{property:"og:description",content:"Beautiful home and personal care essentials delivered across Kenya."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary_large_image"}],links:[{rel:"canonical",href:"/"},{rel:"preload",as:"image",href:settingText(loaderData?.settings??{},"hero_image_url",heroFallback),fetchPriority:"high"}],scripts:[{type:"application/ld+json",children:JSON.stringify({"@context":"https://schema.org","@graph":[{"@type":"WebSite",name:"Scentlyn",alternateName:"Scentlyn Kenya",url:"https://www.scentlyn.co.ke/"},{"@type":"Organization",name:"Scentlyn",url:"https://www.scentlyn.co.ke/",logo:"https://www.scentlyn.co.ke/favicon.png"}]})}]}),
+  head:({loaderData})=>{
+    const title = "Scentlyn | Laundry & Household Essentials in Kenya";
+    const description = "Where freshness meets quality. Shop laundry, kitchen, bathroom and fragrance essentials delivered across Kenya.";
+    const hero = settingText(loaderData?.settings??{}, "hero_image_url", heroFallback);
+    const shareImage = hero.startsWith("https://") ? hero : "https://www.scentlyn.co.ke/scentlyn-home.jpg";
+    return {meta:[{title},{name:"description",content:description},{property:"og:title",content:title},{property:"og:description",content:description},{property:"og:type",content:"website"},{property:"og:image",content:shareImage},{name:"twitter:image",content:shareImage},{name:"twitter:card",content:"summary_large_image"}],links:[{rel:"canonical",href:"/"},{rel:"preload",as:"image",href:hero,fetchPriority:"high"}],scripts:[{type:"application/ld+json",children:JSON.stringify({"@context":"https://schema.org","@type":"Organization",name:"Scentlyn",url:"https://www.scentlyn.co.ke/",logo:"https://www.scentlyn.co.ke/icon-192.png"})}]};
+  },
   component:HomePage,
   errorComponent:()=> <HomeMessage title="We’re refreshing the shelves" body="Please try again in a moment."/>,
   notFoundComponent:()=> <HomeMessage title="Welcome to Scentlyn" body="Our fresh collection is on its way."/>,
