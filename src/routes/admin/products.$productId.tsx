@@ -161,10 +161,10 @@ function ProductFormPage() {
                   {data?.categories.filter((c) => c.id !== categoryId).map((c) => {
                     const on = extraIds.includes(c.id);
                     return (
-                      <div key={c.id} className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold ${on ? "border-accent bg-accent/10 text-accent" : "border-border"}`}>
+                      <label htmlFor={`extra-category-${c.id}`} key={c.id} className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold ${on ? "border-accent bg-accent/10 text-accent" : "border-border"}`}>
                         <input id={`extra-category-${c.id}`} name={`extraCategory-${c.id}`} type="checkbox" className="size-4" checked={on} onChange={() => setExtraIds((ids) => (on ? ids.filter((x) => x !== c.id) : [...ids, c.id]))} />
                         {c.name}
-                      </div>
+                      </label>
                     );
                   })}
                 </div>
@@ -242,7 +242,7 @@ function ProductFormPage() {
               </select>
               <p className="text-xs text-muted-foreground">“Low stock” appears automatically when stock runs low.</p>
             </div>
-            <label className="flex items-center justify-between gap-3 text-sm font-semibold">
+            <div className="flex items-center justify-between gap-3 text-sm font-semibold">
               Featured product
               <LabeledSwitch checked={featured} onCheckedChange={setFeatured}  label="Featured product" />
             </div>
