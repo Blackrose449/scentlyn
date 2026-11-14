@@ -1,8 +1,8 @@
 # Current storefront refinements
 
 ## Form accessibility
-- [ ] Add unique field IDs/names and matching labels across storefront and admin, including generated native controls.
-- [ ] Verify checkout autofill and form controls in the browser without placing an order.
+- [x] Add unique field IDs/names and matching labels across storefront and admin, including generated native controls.
+- [x] Verify checkout autofill and form controls in the browser without placing an order; storefront, cart and sign-in have no missing labels or duplicate IDs. Admin authenticated verification unavailable with external Supabase.
 
 ## Site speed
 - [x] Diagnose first-visit loading dependencies without further photo reduction: remove repeat product reads within the existing freshness window, separate recommendations, slim shared navigation reads, and self-host fonts; database catalogue reads average 2.21ms

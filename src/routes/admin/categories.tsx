@@ -26,7 +26,7 @@ import { LabeledSwitch } from "@/components/ui/labeled-switch";
 import { deleteCategory, getAdminCategories, saveCategory, saveProductTypes } from "@/lib/admin.functions";
 import { slugify } from "@/lib/storefront";
 
-export const Route = createFileRoute("/admin/categories")({ component: CategoriesPage });
+export const Route = createFileRoute("/admin/categories")({ head: () => ({ meta: [{ title: "Categories — Scentlyn admin" }, { name: "description", content: "Manage Scentlyn collections and product types." }, { property: "og:title", content: "Categories — Scentlyn admin" }, { property: "og:description", content: "Manage Scentlyn collections and product types." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }), component: CategoriesPage });
 
 type CatRow = { key: string; id: string | null; name: string; slug: string; slugEdited: boolean; icon_url: string; is_active: boolean };
 const uid = () => crypto.randomUUID();
@@ -174,12 +174,10 @@ function CategoriesView({ data }: { data: Data }) {
                   onChange={(next) => update(row.key, { icon_url: next[0]?.url ?? "" })}
                 />
                 <div className="space-y-1.5">
-                  <Label>Name</Label>
-                  <LabeledField label="Name" hidden><Input value={row.name} onChange={(e) => update(row.key, { name: e.target.value, slug: row.slugEdited ? row.slug : slugify(e.target.value) })} /></LabeledField>
+                  <LabeledField label="Name"><Input value={row.name} onChange={(e) => update(row.key, { name: e.target.value, slug: row.slugEdited ? row.slug : slugify(e.target.value) })} /></LabeledField>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Link</Label>
-                  <LabeledField label="Link" hidden><Input value={row.slug} placeholder={slugify(row.name) || "e.g. laundry"} onChange={(e) => update(row.key, { slug: slugify(e.target.value), slugEdited: e.target.value.length > 0 })} /></LabeledField>
+                  <LabeledField label="Link"><Input value={row.slug} placeholder={slugify(row.name) || "e.g. laundry"} onChange={(e) => update(row.key, { slug: slugify(e.target.value), slugEdited: e.target.value.length > 0 })} /></LabeledField>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="flex items-center gap-2 text-sm font-semibold">

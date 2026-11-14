@@ -10,7 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
-- Form controls use explicit IDs/names and associated labels; repeated editor fields use LabeledField with React useId so identifiers stay unique through SSR hydration.
+- Form controls use explicit IDs/names and associated labels; repeated editor fields use LabeledField with React useId so identifiers stay unique through SSR hydration. LabeledSwitch owns a labelled native checkbox; checkout uses native selects/radios to avoid unnamed hidden fields.
 - Product navigation reuses public catalogue rows only within their existing 60-second freshness window; recommendations load separately and never block purchasing, while checkout validates live prices and stock.
 - Shared storefront navigation reads categories/contact settings rather than loading homepage products; fonts ship as local Latin variable assets to remove third-party stylesheet waits.
 - Reserve at least a viewport of storefront main content and provide a route pending skeleton so streaming or delayed page reads never bring the footer into the opening screen.

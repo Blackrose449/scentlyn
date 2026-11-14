@@ -19,7 +19,7 @@ import type { Json } from "@/integrations/supabase/types";
 import { getAdminSettings, saveDeliveryZone, saveSettings } from "@/lib/admin.functions";
 import { money, parseCampaigns, type Campaign } from "@/lib/storefront";
 
-export const Route = createFileRoute("/admin/settings")({ component: SettingsPage });
+export const Route = createFileRoute("/admin/settings")({ head: () => ({ meta: [{ title: "Settings — Scentlyn admin" }, { name: "description", content: "Manage Scentlyn store content and delivery settings." }, { property: "og:title", content: "Settings — Scentlyn admin" }, { property: "og:description", content: "Manage Scentlyn store content and delivery settings." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }), component: SettingsPage });
 
 const text = (s: Record<string, Json>, k: string) => (typeof s[k] === "string" ? (s[k] as string) : "");
 const list = (s: Record<string, Json>, k: string) => (Array.isArray(s[k]) ? (s[k] as Json[]).filter((x): x is string => typeof x === "string") : []);

@@ -17,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { listProducts, setProductArchived } from "@/lib/admin.functions";
 import { money } from "@/lib/storefront";
 
-export const Route = createFileRoute("/admin/products/")({ component: ProductsPage });
+export const Route = createFileRoute("/admin/products/")({ head: () => ({ meta: [{ title: "Products — Scentlyn admin" }, { name: "description", content: "Manage the Scentlyn product catalogue." }, { property: "og:title", content: "Products — Scentlyn admin" }, { property: "og:description", content: "Manage the Scentlyn product catalogue." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }), component: ProductsPage });
 
 function ProductsPage() {
   const queryClient = useQueryClient();

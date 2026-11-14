@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({ status: z.string().optional(), q: z.string().optional() });
 
-export const Route = createFileRoute("/admin/orders/")({
+export const Route = createFileRoute("/admin/orders/")({ head: () => ({ meta: [{ title: "Orders — Scentlyn admin" }, { name: "description", content: "Manage Scentlyn customer orders." }, { property: "og:title", content: "Orders — Scentlyn admin" }, { property: "og:description", content: "Manage Scentlyn customer orders." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   validateSearch: (search) => searchSchema.parse(search),
   component: OrdersPage,
 });

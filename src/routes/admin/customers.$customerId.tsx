@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getCustomerDetail } from "@/lib/admin.functions";
 import { money } from "@/lib/storefront";
 
-export const Route = createFileRoute("/admin/customers/$customerId")({ component: CustomerDetailPage });
+export const Route = createFileRoute("/admin/customers/$customerId")({ head: () => ({ meta: [{ title: "Customer details — Scentlyn admin" }, { name: "description", content: "Review a Scentlyn customer and their orders." }, { property: "og:title", content: "Customer details — Scentlyn admin" }, { property: "og:description", content: "Review a Scentlyn customer and their orders." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }), component: CustomerDetailPage });
 
 function CustomerDetailPage() {
   const { customerId } = Route.useParams();

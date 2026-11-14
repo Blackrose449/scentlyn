@@ -16,7 +16,7 @@ import { LabeledSwitch } from "@/components/ui/labeled-switch";
 import { Textarea } from "@/components/ui/textarea";
 import { getProductForm, saveProduct } from "@/lib/admin.functions";
 
-export const Route = createFileRoute("/admin/products/$productId")({ component: ProductFormPage });
+export const Route = createFileRoute("/admin/products/$productId")({ head: () => ({ meta: [{ title: "Product editor — Scentlyn admin" }, { name: "description", content: "Edit Scentlyn products, variants and photos." }, { property: "og:title", content: "Product editor — Scentlyn admin" }, { property: "og:description", content: "Edit Scentlyn products, variants and photos." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }), component: ProductFormPage });
 
 type VariantRow = { key: string; id: string | null; value: string; price: string; stock: string; sku: string };
 type Group = { key: string; type: string; rows: VariantRow[] };
