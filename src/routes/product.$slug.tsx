@@ -1,3 +1,4 @@
+import { Input } from "@/components/ui/input";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, ImageIcon, Minus, Plus } from "lucide-react";
@@ -83,7 +84,7 @@ function ProductView({product}:{product:StoreProduct}){
         {single&&<p className="mt-1 text-sm font-semibold text-muted-foreground">{money(single.price)} for {single.label}</p>}
         {single&&<p className={`mt-2 text-sm ${singleStock?"text-muted-foreground":"text-destructive"}`}>{stockLabel(single.stock)}</p>}
         <div className="mt-4 flex gap-3">
-          <div className="grid h-11 grid-cols-3 border border-input bg-card"><Button variant="ghost" size="icon" onClick={()=>setQuantity(Math.max(1,quantity-1))} aria-label="Decrease quantity"><Minus/></Button><span className="grid min-w-10 place-items-center font-bold">{quantity}</span><Button variant="ghost" size="icon" onClick={()=>setQuantity(Math.min(single?Math.max(1,single.stock):50,quantity+1))} aria-label="Increase quantity"><Plus/></Button></div>
+          <div className="grid h-11 grid-cols-3 border border-input bg-card"><Button variant="ghost" size="icon" onClick={()=>setQuantity(Math.max(1,quantity-1))} aria-label="Decrease quantity"><Minus/></Button><label htmlFor={`quantity-${product.id}`} className="sr-only">Quantity for {displayName}</label><Input id={`quantity-${product.id}`} name={`quantity-${product.id}`} type="number" inputMode="numeric" value={quantity} readOnly className="h-full w-10 rounded-none border-0 px-0 text-center font-bold shadow-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"/><Button variant="ghost" size="icon" onClick={()=>setQuantity(Math.min(single?Math.max(1,single.stock):50,quantity+1))} aria-label="Increase quantity"><Plus/></Button></div>
           <Button size="lg" className="min-w-0 flex-1" disabled={!singleStock} onClick={()=>addOption(single,quantity)}>{!singleStock?"Out of stock":added?<><Check/>Added to cart</>:"Add to cart"}</Button>
         </div>
       </div>

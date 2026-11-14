@@ -1,3 +1,4 @@
+import { LabeledField } from "@/components/ui/labeled-field";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -9,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { listCustomers } from "@/lib/admin.functions";
 import { money } from "@/lib/storefront";
 
-export const Route = createFileRoute("/admin/customers/")({ component: CustomersPage });
+export const Route = createFileRoute("/admin/customers/")({ head: () => ({ meta: [{ title: "Customers — Scentlyn admin" }, { name: "description", content: "Review Scentlyn customer order history." }, { property: "og:title", content: "Customers — Scentlyn admin" }, { property: "og:description", content: "Review Scentlyn customer order history." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }), component: CustomersPage });
 
 function CustomersPage() {
   const listFn = useServerFn(listCustomers);
@@ -24,7 +25,7 @@ function CustomersPage() {
     <>
       <PageHeading title="Customers" description="Built from order history." />
       <AdminCard className="p-4">
-        <Input className="mb-4 sm:w-64" placeholder="Search name or phone" value={term} onChange={(e) => setTerm(e.target.value)} />
+        <LabeledField label="Search name or phone" hidden><Input className="mb-4 sm:w-64" placeholder="Search name or phone" value={term} onChange={(e) => setTerm(e.target.value)} /></LabeledField>
         {isLoading ? (
           <Skeleton className="h-60 w-full" />
         ) : rows.length ? (

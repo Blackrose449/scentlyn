@@ -1,3 +1,4 @@
+import { LabeledField } from "@/components/ui/labeled-field";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -21,11 +22,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
+import { LabeledSwitch } from "@/components/ui/labeled-switch";
 import { deleteCategory, getAdminCategories, saveCategory, saveProductTypes } from "@/lib/admin.functions";
 import { slugify } from "@/lib/storefront";
 
-export const Route = createFileRoute("/admin/categories")({ component: CategoriesPage });
+export const Route = createFileRoute("/admin/categories")({ head: () => ({ meta: [{ title: "Categories — Scentlyn admin" }, { name: "description", content: "Manage Scentlyn collections and product types." }, { property: "og:title", content: "Categories — Scentlyn admin" }, { property: "og:description", content: "Manage Scentlyn collections and product types." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }), component: CategoriesPage });
 
 type CatRow = { key: string; id: string | null; name: string; slug: string; slugEdited: boolean; icon_url: string; is_active: boolean };
 const uid = () => crypto.randomUUID();
@@ -173,18 +174,16 @@ function CategoriesView({ data }: { data: Data }) {
                   onChange={(next) => update(row.key, { icon_url: next[0]?.url ?? "" })}
                 />
                 <div className="space-y-1.5">
-                  <Label>Name</Label>
-                  <Input value={row.name} onChange={(e) => update(row.key, { name: e.target.value, slug: row.slugEdited ? row.slug : slugify(e.target.value) })} />
+                  <LabeledField label="Name"><Input value={row.name} onChange={(e) => update(row.key, { name: e.target.value, slug: row.slugEdited ? row.slug : slugify(e.target.value) })} /></LabeledField>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Link</Label>
-                  <Input value={row.slug} placeholder={slugify(row.name) || "e.g. laundry"} onChange={(e) => update(row.key, { slug: slugify(e.target.value), slugEdited: e.target.value.length > 0 })} />
+                  <LabeledField label="Link"><Input value={row.slug} placeholder={slugify(row.name) || "e.g. laundry"} onChange={(e) => update(row.key, { slug: slugify(e.target.value), slugEdited: e.target.value.length > 0 })} /></LabeledField>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <label className="flex items-center gap-2 text-sm font-semibold">
-                    <Switch checked={row.is_active} onCheckedChange={(v) => update(row.key, { is_active: v })} />
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <LabeledSwitch checked={row.is_active} onCheckedChange={(v) => update(row.key, { is_active: v })}  label="Active" />
                     {row.is_active ? <span className="flex items-center gap-1"><Eye className="size-4" /> Shown</span> : <span className="flex items-center gap-1 text-muted-foreground"><EyeOff className="size-4" /> Hidden</span>}
-                  </label>
+                  </div>
                   <Button type="button" variant="ghost" size="icon" aria-label={`Delete ${row.name || "category"}`} onClick={() => setConfirmDelete(row)}><Trash2 className="size-4" /></Button>
                 </div>
               </div>
@@ -196,7 +195,7 @@ function CategoriesView({ data }: { data: Data }) {
                     <p className="text-xs text-muted-foreground">These fill the “Shop by type” filter for this category. {count} product{count === 1 ? "" : "s"} use this category.</p>
                   </div>
                   <div className="flex gap-2">
-                    <Input
+                    <LabeledField label="New product type" hidden><Input
                       aria-label="New product type"
                       placeholder="Add a type, e.g. Stain Removers"
                       className="h-9 w-56"
@@ -209,7 +208,7 @@ function CategoriesView({ data }: { data: Data }) {
                           setNewType((t) => ({ ...t, [row.key]: "" }));
                         }
                       }}
-                    />
+                    /></LabeledField>
                     <Button
                       type="button"
                       variant="outline"

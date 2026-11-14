@@ -1,3 +1,4 @@
+import { LabeledField } from "@/components/ui/labeled-field";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -11,14 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
+import { LabeledSwitch } from "@/components/ui/labeled-switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { Json } from "@/integrations/supabase/types";
 import { getAdminSettings, saveDeliveryZone, saveSettings } from "@/lib/admin.functions";
 import { money, parseCampaigns, type Campaign } from "@/lib/storefront";
 
-export const Route = createFileRoute("/admin/settings")({ component: SettingsPage });
+export const Route = createFileRoute("/admin/settings")({ head: () => ({ meta: [{ title: "Settings — Scentlyn admin" }, { name: "description", content: "Manage Scentlyn store content and delivery settings." }, { property: "og:title", content: "Settings — Scentlyn admin" }, { property: "og:description", content: "Manage Scentlyn store content and delivery settings." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }), component: SettingsPage });
 
 const text = (s: Record<string, Json>, k: string) => (typeof s[k] === "string" ? (s[k] as string) : "");
 const list = (s: Record<string, Json>, k: string) => (Array.isArray(s[k]) ? (s[k] as Json[]).filter((x): x is string => typeof x === "string") : []);
@@ -39,7 +40,7 @@ function SaveBar({ saving, savedAt, onSave }: { saving: boolean; savedAt: number
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
-  return <div className="space-y-1.5"><Label>{label}</Label>{children}</div>;
+  return <div className="space-y-1.5"><span className="text-sm font-medium">{label}</span>{children}</div>;
 }
 
 function useSaver() {
@@ -109,9 +110,9 @@ function HomepageTab({ data }: { data: Data }) {
   return (
     <AdminCard className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Hero introduction"><Input value={eyebrow} onChange={(e) => setEyebrow(e.target.value)} /></Field>
-        <Field label="Hero headline"><Input value={headline} onChange={(e) => setHeadline(e.target.value)} /></Field>
-        <Field label="Hero subtext"><Textarea rows={2} value={subtext} onChange={(e) => setSubtext(e.target.value)} /></Field>
+        <Field label="Hero introduction"><LabeledField label="Hero introduction" hidden><Input value={eyebrow} onChange={(e) => setEyebrow(e.target.value)} /></LabeledField></Field>
+        <Field label="Hero headline"><LabeledField label="Hero headline" hidden><Input value={headline} onChange={(e) => setHeadline(e.target.value)} /></LabeledField></Field>
+        <Field label="Hero subtext"><LabeledField label="Hero subtext" hidden><Textarea rows={2} value={subtext} onChange={(e) => setSubtext(e.target.value)} /></LabeledField></Field>
       </div>
       <Field label="Hero image">
         <ImageUploader multiple={false} folder="site" label={hero ? "Change photo" : "Upload photo"} value={hero ? [{ id: null, url: hero }] : []} onChange={(next) => setHero(next[0]?.url ?? "")} />
@@ -119,7 +120,7 @@ function HomepageTab({ data }: { data: Data }) {
       <Field label="Trust badges">
         <div className="grid gap-2 sm:grid-cols-2">
           {badges.map((badge, i) => (
-            <Input key={i} placeholder={`Badge ${i + 1}`} value={badge} onChange={(e) => setBadges(badges.map((b, j) => (j === i ? e.target.value : b)))} />
+            <LabeledField key={i} label="Trust badge" hidden><Input placeholder={`Badge ${i + 1}`} value={badge} onChange={(e) => setBadges(badges.map((b, j) => (j === i ? e.target.value : b)))} /></LabeledField>
           ))}
         </div>
       </Field>
@@ -135,16 +136,16 @@ function HomepageTab({ data }: { data: Data }) {
           {!featured.length ? <li className="text-sm text-muted-foreground">No products picked — products marked “Featured” are shown instead.</li> : null}
         </ul>
         <div className="flex gap-2 pt-2">
-          <select className="h-10 flex-1 rounded-md border border-input bg-background px-3 text-sm" value={pick} onChange={(e) => setPick(e.target.value)}>
+          <LabeledField label="Choose product" hidden><select className="h-10 flex-1 rounded-md border border-input bg-background px-3 text-sm" value={pick} onChange={(e) => setPick(e.target.value)}>
             <option value="">Choose a product…</option>
             {available.map((p) => <option key={p.id} value={p.id}>{p.name}{p.status !== "active" ? " (draft)" : ""}</option>)}
-          </select>
+          </select></LabeledField>
           <Button type="button" variant="outline" disabled={!pick} onClick={() => { setFeatured((f) => [...f, pick]); setPick(""); }}><Plus className="size-4" /> Add</Button>
         </div>
       </Field>
       <div className="grid gap-3 rounded-md border border-border p-3 md:grid-cols-[1fr_auto] md:items-end">
-        <Field label="Promo banner text (optional one-line strip)"><Input value={promoText} onChange={(e) => setPromoText(e.target.value)} /></Field>
-        <label className="flex items-center gap-2 text-sm font-semibold">Show banner <Switch checked={promoOn} onCheckedChange={setPromoOn} /></label>
+        <Field label="Promo banner text (optional one-line strip)"><LabeledField label="Promo banner text (optional one-line strip)" hidden><Input value={promoText} onChange={(e) => setPromoText(e.target.value)} /></LabeledField></Field>
+        <div className="flex items-center gap-2 text-sm font-semibold">Show banner <LabeledSwitch checked={promoOn} onCheckedChange={setPromoOn}  label="Show banner" /></div>
       </div>
       <CampaignsEditor campaigns={campaigns} setCampaigns={setCampaigns} products={data.products} />
       <SaveBar
@@ -189,12 +190,12 @@ function ZonesTab({ data }: { data: Data }) {
       </div>
       {rows.map((row) => (
         <div key={row.key} className="grid gap-3 md:grid-cols-[1fr_9rem_7rem] md:items-center">
-          <Input aria-label="Zone name" value={row.zone_name} onChange={(e) => setRows((r) => r.map((x) => (x.key === row.key ? { ...x, zone_name: e.target.value } : x)))} />
-          <Input aria-label="Delivery fee" type="number" min={0} value={row.fee} onChange={(e) => setRows((r) => r.map((x) => (x.key === row.key ? { ...x, fee: e.target.value } : x)))} />
-          <label className="flex items-center gap-2 text-sm">
-            <Switch checked={row.is_active} onCheckedChange={(v) => setRows((r) => r.map((x) => (x.key === row.key ? { ...x, is_active: v } : x)))} />
+          <LabeledField label="Zone name" hidden><Input aria-label="Zone name" value={row.zone_name} onChange={(e) => setRows((r) => r.map((x) => (x.key === row.key ? { ...x, zone_name: e.target.value } : x)))} /></LabeledField>
+          <LabeledField label="Delivery fee" hidden><Input aria-label="Delivery fee" type="number" min={0} value={row.fee} onChange={(e) => setRows((r) => r.map((x) => (x.key === row.key ? { ...x, fee: e.target.value } : x)))} /></LabeledField>
+          <div className="flex items-center gap-2 text-sm">
+            <LabeledSwitch checked={row.is_active} onCheckedChange={(v) => setRows((r) => r.map((x) => (x.key === row.key ? { ...x, is_active: v } : x)))}  label="Active" />
             <StatusBadge status={row.is_active ? "active" : "draft"} />
-          </label>
+          </div>
         </div>
       ))}
       <Button type="button" variant="outline" size="sm" onClick={() => setRows((r) => [...r, { key: crypto.randomUUID(), id: null, zone_name: "", fee: "0", is_active: true }])}>
@@ -242,17 +243,17 @@ function StoreTab({ data }: { data: Data }) {
             <p className="text-sm font-bold">M-Pesa Till number</p>
             <p className="text-xs text-muted-foreground">When on, customers who choose M-Pesa can also pay to this Till. Switch it off once Pesapal is live. Paid orders still need to be marked as paid on the order page after you check your M-Pesa statement.</p>
           </div>
-          <Switch checked={tillOn} onCheckedChange={setTillOn} aria-label="Enable Till payments" />
+          <LabeledSwitch checked={tillOn} onCheckedChange={setTillOn} aria-label="Enable Till payments"  label="Enable Till payments" />
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Till number"><Input inputMode="numeric" value={tillNumber} onChange={(e) => setTillNumber(e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="e.g. 5123456" /></Field>
-          <Field label="Name shown to customers (optional)"><Input value={tillName} onChange={(e) => setTillName(e.target.value)} placeholder="Business name on the Till" /></Field>
+          <Field label="Till number"><LabeledField label="Till number" hidden><Input inputMode="numeric" value={tillNumber} onChange={(e) => setTillNumber(e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="e.g. 5123456" /></LabeledField></Field>
+          <Field label="Name shown to customers (optional)"><LabeledField label="Name shown to customers (optional)" hidden><Input value={tillName} onChange={(e) => setTillName(e.target.value)} placeholder="Business name on the Till" /></LabeledField></Field>
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         {keys.map(([k, label]) => (
           <Field key={k} label={label}>
-            <Input value={values[k] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [k]: e.target.value }))} />
+            <LabeledField label={label} hidden><Input value={values[k] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [k]: e.target.value }))} /></LabeledField>
           </Field>
         ))}
       </div>
@@ -279,7 +280,7 @@ function CampaignsEditor({ campaigns, setCampaigns, products }: { campaigns: Cam
         return (
           <div key={c.id} className="space-y-3 rounded-md border border-border bg-background p-3">
             <div className="flex items-center gap-2">
-              <Input placeholder="Campaign title, e.g. Laundry Pods offer" value={c.title} onChange={(e) => update(c.id, { title: e.target.value })} />
+              <LabeledField label="Campaign title" hidden><Input placeholder="Campaign title, e.g. Laundry Pods offer" value={c.title} onChange={(e) => update(c.id, { title: e.target.value })} /></LabeledField>
               <Button type="button" variant="ghost" size="icon" aria-label="Move up" disabled={index === 0} onClick={() => { const n = [...campaigns]; [n[index - 1], n[index]] = [n[index]!, n[index - 1]!]; setCampaigns(n); }}><ArrowUp className="size-4" /></Button>
               <Button type="button" variant="ghost" size="icon" aria-label="Delete campaign" onClick={() => setCampaigns(campaigns.filter((x) => x.id !== c.id))}><Trash2 className="size-4" /></Button>
             </div>
@@ -299,14 +300,14 @@ function CampaignsEditor({ campaigns, setCampaigns, products }: { campaigns: Cam
                 ))}
                 {!c.product_ids.length ? <li className="text-sm text-muted-foreground">No products linked — the campaign will display without a link. One product opens its page; several open an offer page listing them.</li> : null}
               </ul>
-              <select className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value="" onChange={(e) => e.target.value && update(c.id, { product_ids: [...c.product_ids, e.target.value] })}>
+              <LabeledField label="Choose product" hidden><select className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value="" onChange={(e) => e.target.value && update(c.id, { product_ids: [...c.product_ids, e.target.value] })}>
                 <option value="">Add a product…</option>
                 {available.map((p) => <option key={p.id} value={p.id}>{p.name}{p.status !== "active" ? " (draft)" : ""}</option>)}
-              </select>
+              </select></LabeledField>
             </Field>
             <div className="flex flex-wrap items-end gap-4">
-              <Field label="Ends on (optional)"><Input type="date" value={c.ends_at} onChange={(e) => update(c.id, { ends_at: e.target.value })} /></Field>
-              <label className="flex items-center gap-2 pb-2 text-sm font-semibold">Show on homepage <Switch checked={c.enabled} onCheckedChange={(v) => update(c.id, { enabled: v })} /></label>
+              <Field label="Ends on (optional)"><LabeledField label="Campaign end date" hidden><Input type="date" value={c.ends_at} onChange={(e) => update(c.id, { ends_at: e.target.value })} /></LabeledField></Field>
+              <div className="flex items-center gap-2 pb-2 text-sm font-semibold">Show on homepage <LabeledSwitch checked={c.enabled} onCheckedChange={(v) => update(c.id, { enabled: v })}  label="Show on homepage" /></div>
             </div>
           </div>
         );

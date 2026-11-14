@@ -21,7 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ORDER_STATUSES, getOrderDetail, updateOrder, type AdminOrderRow } from "@/lib/admin.functions";
 import { money } from "@/lib/storefront";
 
-export const Route = createFileRoute("/admin/orders/$orderId")({ component: OrderDetailPage });
+export const Route = createFileRoute("/admin/orders/$orderId")({ head: () => ({ meta: [{ title: "Order details — Scentlyn admin" }, { name: "description", content: "Manage fulfilment and payment for a Scentlyn order." }, { property: "og:title", content: "Order details — Scentlyn admin" }, { property: "og:description", content: "Manage fulfilment and payment for a Scentlyn order." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }), component: OrderDetailPage });
 
 type OrderStatus = (typeof ORDER_STATUSES)[number];
 type Patch = { status?: OrderStatus; payment_status?: "pending" | "paid" | "failed" };

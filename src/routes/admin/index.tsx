@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getOverview } from "@/lib/admin.functions";
 import { money } from "@/lib/storefront";
 
-export const Route = createFileRoute("/admin/")({ component: OverviewPage });
+export const Route = createFileRoute("/admin/")({ head: () => ({ meta: [{ title: "Overview — Scentlyn admin" }, { name: "description", content: "Review store activity and stock alerts." }, { property: "og:title", content: "Overview — Scentlyn admin" }, { property: "og:description", content: "Review store activity and stock alerts." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }), component: OverviewPage });
 
 function OverviewPage() {
   const overviewFn = useServerFn(getOverview);

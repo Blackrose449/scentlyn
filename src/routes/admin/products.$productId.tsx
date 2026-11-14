@@ -1,3 +1,4 @@
+import { LabeledField } from "@/components/ui/labeled-field";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -11,11 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
+import { LabeledSwitch } from "@/components/ui/labeled-switch";
 import { Textarea } from "@/components/ui/textarea";
 import { getProductForm, saveProduct } from "@/lib/admin.functions";
 
-export const Route = createFileRoute("/admin/products/$productId")({ component: ProductFormPage });
+export const Route = createFileRoute("/admin/products/$productId")({ head: () => ({ meta: [{ title: "Product editor — Scentlyn admin" }, { name: "description", content: "Edit Scentlyn products, variants and photos." }, { property: "og:title", content: "Product editor — Scentlyn admin" }, { property: "og:description", content: "Edit Scentlyn products, variants and photos." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }), component: ProductFormPage });
 
 type VariantRow = { key: string; id: string | null; value: string; price: string; stock: string; sku: string };
 type Group = { key: string; type: string; rows: VariantRow[] };
@@ -146,11 +147,11 @@ function ProductFormPage() {
         <div className="space-y-6">
           <AdminCard className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="name">Name</Label><Input id="name" required minLength={2} value={name} onChange={(e) => setName(e.target.value)} /></div>
-              <div className="space-y-1.5"><Label htmlFor="brand">Brand</Label><Input id="brand" value={brand} onChange={(e) => setBrand(e.target.value)} /></div>
+              <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="name">Name</Label><Input id="name" name="name" required minLength={2} value={name} onChange={(e) => setName(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label htmlFor="brand">Brand</Label><Input id="brand" name="brand" value={brand} onChange={(e) => setBrand(e.target.value)} /></div>
               <div className="space-y-1.5">
                 <Label htmlFor="category">Main category</Label>
-                <select id="category" className={selectClass} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+                <select id="category" name="category" className={selectClass} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
                   {data?.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
@@ -160,8 +161,8 @@ function ProductFormPage() {
                   {data?.categories.filter((c) => c.id !== categoryId).map((c) => {
                     const on = extraIds.includes(c.id);
                     return (
-                      <label key={c.id} className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold ${on ? "border-accent bg-accent/10 text-accent" : "border-border"}`}>
-                        <input type="checkbox" className="size-4" checked={on} onChange={() => setExtraIds((ids) => (on ? ids.filter((x) => x !== c.id) : [...ids, c.id]))} />
+                      <label htmlFor={`extra-category-${c.id}`} key={c.id} className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold ${on ? "border-accent bg-accent/10 text-accent" : "border-border"}`}>
+                        <input id={`extra-category-${c.id}`} name={`extraCategory-${c.id}`} type="checkbox" className="size-4" checked={on} onChange={() => setExtraIds((ids) => (on ? ids.filter((x) => x !== c.id) : [...ids, c.id]))} />
                         {c.name}
                       </label>
                     );
@@ -169,11 +170,11 @@ function ProductFormPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">The product appears in its main category and every ticked one.</p>
               </div>
-              <div className="space-y-1.5"><Label htmlFor="sub">Subcategory</Label><Input id="sub" placeholder="e.g. Fabric softener" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} /></div>
-              <div className="space-y-1.5"><Label htmlFor="size">Size / option (main product)</Label><Input id="size" placeholder="e.g. 52 sheets, 2kg" value={sizeLabel} onChange={(e) => setSizeLabel(e.target.value)} /></div>
-              <div className="space-y-1.5"><Label htmlFor="price">Base price (KSh)</Label><Input id="price" type="number" min={0} step="1" required value={price} onChange={(e) => setPrice(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label htmlFor="sub">Subcategory</Label><Input id="sub" name="sub" placeholder="e.g. Fabric softener" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label htmlFor="size">Size / option (main product)</Label><Input id="size" name="size" placeholder="e.g. 52 sheets, 2kg" value={sizeLabel} onChange={(e) => setSizeLabel(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label htmlFor="price">Base price (KSh)</Label><Input id="price" name="price" type="number" min={0} step="1" required value={price} onChange={(e) => setPrice(e.target.value)} /></div>
             </div>
-            <div className="space-y-1.5"><Label htmlFor="desc">Description</Label><Textarea id="desc" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+            <div className="space-y-1.5"><Label htmlFor="desc">Description</Label><Textarea id="desc" name="desc" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
           </AdminCard>
 
           <AdminCard className="space-y-3">
@@ -194,7 +195,7 @@ function ProductFormPage() {
             {groups.map((group) => (
               <div key={group.key} className="rounded-md border border-border p-3">
                 <div className="mb-3 flex items-center gap-2">
-                  <Input aria-label="Group name" className="max-w-56 font-semibold" value={group.type} onChange={(e) => updateGroup(group.key, (g) => ({ ...g, type: e.target.value }))} />
+                  <LabeledField label="Group name" hidden><Input aria-label="Group name" className="max-w-56 font-semibold" value={group.type} onChange={(e) => updateGroup(group.key, (g) => ({ ...g, type: e.target.value }))} /></LabeledField>
                   <Button type="button" variant="ghost" size="icon" aria-label="Remove group" onClick={() => setGroups((gs) => gs.filter((g) => g.key !== group.key))}><Trash2 className="size-4" /></Button>
                 </div>
                 <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_2.25rem] gap-2 text-xs font-bold uppercase text-muted-foreground">
@@ -204,10 +205,10 @@ function ProductFormPage() {
                   const set = (patch: Partial<VariantRow>) => updateGroup(group.key, (g) => ({ ...g, rows: g.rows.map((r) => (r.key === row.key ? { ...r, ...patch } : r)) }));
                   return (
                     <div key={row.key} className="mt-2 grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_2.25rem] gap-2">
-                      <Input placeholder="e.g. Spring awakening" value={row.value} onChange={(e) => set({ value: e.target.value })} />
-                      <Input type="number" min={0} placeholder="Base" value={row.price} onChange={(e) => set({ price: e.target.value })} />
-                      <Input type="number" min={0} value={row.stock} onChange={(e) => set({ stock: e.target.value })} />
-                      <Input value={row.sku} onChange={(e) => set({ sku: e.target.value })} />
+                      <LabeledField label="Variant value" hidden><Input placeholder="e.g. Spring awakening" value={row.value} onChange={(e) => set({ value: e.target.value })} /></LabeledField>
+                      <LabeledField label="Variant price" hidden><Input type="number" min={0} placeholder="Base" value={row.price} onChange={(e) => set({ price: e.target.value })} /></LabeledField>
+                      <LabeledField label="Variant stock" hidden><Input type="number" min={0} value={row.stock} onChange={(e) => set({ stock: e.target.value })} /></LabeledField>
+                      <LabeledField label="Variant SKU" hidden><Input value={row.sku} onChange={(e) => set({ sku: e.target.value })} /></LabeledField>
                       <Button type="button" variant="ghost" size="icon" aria-label="Remove value" onClick={() => updateGroup(group.key, (g) => ({ ...g, rows: g.rows.filter((r) => r.key !== row.key) }))}><Trash2 className="size-4" /></Button>
                     </div>
                   );
@@ -224,27 +225,27 @@ function ProductFormPage() {
           <AdminCard className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="status">Status</Label>
-              <select id="status" className={selectClass} value={status} onChange={(e) => setStatus(e.target.value as "active" | "draft")}>
+              <select id="status" name="status" className={selectClass} value={status} onChange={(e) => setStatus(e.target.value as "active" | "draft")}>
                 <option value="active">Active — visible in shop</option>
                 <option value="draft">Draft — hidden</option>
               </select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="stock">Stock {groups.length ? "(main product's own stock)" : ""}</Label>
-              <Input id="stock" type="number" min={0} value={stock} onChange={(e) => setStock(e.target.value)} />
+              <Input id="stock" name="stock" type="number" min={0} value={stock} onChange={(e) => setStock(e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="badge">Badge</Label>
-              <select id="badge" className={selectClass} value={badge} onChange={(e) => setBadge(e.target.value as "none" | "best_seller")}>
+              <select id="badge" name="badge" className={selectClass} value={badge} onChange={(e) => setBadge(e.target.value as "none" | "best_seller")}>
                 <option value="none">None</option>
                 <option value="best_seller">Best seller</option>
               </select>
               <p className="text-xs text-muted-foreground">“Low stock” appears automatically when stock runs low.</p>
             </div>
-            <label className="flex items-center justify-between gap-3 text-sm font-semibold">
+            <div className="flex items-center justify-between gap-3 text-sm font-semibold">
               Featured product
-              <Switch checked={featured} onCheckedChange={setFeatured} />
-            </label>
+              <LabeledSwitch checked={featured} onCheckedChange={setFeatured}  label="Featured product" />
+            </div>
           </AdminCard>
         </div>
       </div>

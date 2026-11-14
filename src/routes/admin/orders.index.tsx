@@ -1,3 +1,4 @@
+import { LabeledField } from "@/components/ui/labeled-field";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({ status: z.string().optional(), q: z.string().optional() });
 
-export const Route = createFileRoute("/admin/orders/")({
+export const Route = createFileRoute("/admin/orders/")({ head: () => ({ meta: [{ title: "Orders — Scentlyn admin" }, { name: "description", content: "Manage Scentlyn customer orders." }, { property: "og:title", content: "Orders — Scentlyn admin" }, { property: "og:description", content: "Manage Scentlyn customer orders." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   validateSearch: (search) => searchSchema.parse(search),
   component: OrdersPage,
 });
@@ -56,7 +57,7 @@ function OrdersPage() {
               navigate({ search: { ...search, q: term.trim() || undefined } });
             }}
           >
-            <Input placeholder="Search name, phone or order #" value={term} onChange={(e) => setTerm(e.target.value)} />
+            <LabeledField label="Search name, phone or order #" hidden><Input placeholder="Search name, phone or order #" value={term} onChange={(e) => setTerm(e.target.value)} /></LabeledField>
           </form>
         </div>
 
