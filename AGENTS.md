@@ -11,9 +11,10 @@
 
 ## Architecture rules
 - Form controls use explicit IDs/names and associated labels; repeated editor fields use LabeledField with React useId so identifiers stay unique through SSR hydration. LabeledSwitch owns a labelled native checkbox; checkout uses native selects/radios to avoid unnamed hidden fields.
-- Product navigation reuses public catalogue rows only within their existing 60-second freshness window; recommendations load separately and never block purchasing, while checkout validates live prices and stock.
-- Shared storefront navigation reads categories/contact settings rather than loading homepage products; fonts ship as local Latin variable assets to remove third-party stylesheet waits.
+- Public home/product/category queries and catalogue-row reuse share a five-minute freshness window; recommendations never block purchasing, while checkout validates live prices and stock.
+- Shared storefront navigation loads categories/contact settings in the root loader rather than after mount; fonts ship as local Latin variable assets to remove third-party stylesheet waits.
 - Reserve at least a viewport of storefront main content and provide a route pending skeleton so streaming or delayed page reads never bring the footer into the opening screen.
+- Router scroll restoration owns page positioning; never scroll product content after its first paint, which causes visible jumps.
 - Hydrate the request-scoped QueryClient through router SSR Query integration; preserve the root provider so storefront data is reused without hydration mismatches or duplicate initial fetches.
 - Keep homepage product reads scoped to featured cards and live campaign references, use compressed bundled storefront media, and preload only the homepage's main image to reduce downloads without caching private checkout data.
 - The `categories` and `product_types` tables are the single source of truth for storefront navigation and the "Shop by type" filter — never hard-code category lists in components; a pre-render fallback list exists only to avoid a header flash.

@@ -16,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CartProvider } from "../lib/cart";
 import { StoreLayout } from "../components/storefront/store-shell";
 import { Toaster } from "../components/ui/sonner";
+import { shellQuery } from "../lib/storefront-queries";
 
 function NotFoundComponent() {
   return (
@@ -78,6 +79,10 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  loader: async ({ context, location }) => {
+    if (location.pathname.startsWith("/admin") || location.pathname.startsWith("/auth") || location.pathname.startsWith("/api/")) return;
+    await context.queryClient.ensureQueryData(shellQuery(context.queryClient));
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },

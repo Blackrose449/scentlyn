@@ -1,5 +1,9 @@
 # Current storefront refinements
 
+## Stable first-load content
+- [ ] Ensure shared navigation and catalogue data are server-rendered, use five-minute public query freshness, and remove post-paint product scrolling.
+- [ ] Verify first-load visibility, fixed loading space, and cache reuse on mobile and desktop.
+
 ## Form accessibility
 - [x] Add unique field IDs/names and matching labels across storefront and admin, including generated native controls.
 - [x] Verify checkout autofill and form controls in the browser without placing an order; storefront, cart and sign-in have no missing labels or duplicate IDs. Admin authenticated verification unavailable with external Supabase.
