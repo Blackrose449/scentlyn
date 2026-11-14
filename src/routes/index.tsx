@@ -10,9 +10,10 @@ import scentStoryImage from "@/assets/scent-story-home.webp";
 import { Button } from "@/components/ui/button";
 import { EmptyProducts, ProductCard } from "@/components/storefront/product-card";
 import { getStorefrontHome } from "@/lib/storefront.functions";
+import { STOREFRONT_STALE_TIME } from "@/lib/storefront-cache-policy";
 import { activeCategories, productPath, settingBoolean, settingList, settingText, type StoreCampaign } from "@/lib/storefront";
 
-const homeQuery = queryOptions({ queryKey:["storefront-home"], queryFn:()=>getStorefrontHome(), staleTime:60_000 });
+const homeQuery = queryOptions({ queryKey:["storefront-home"], queryFn:()=>getStorefrontHome(), staleTime:STOREFRONT_STALE_TIME });
 const categoryImages: Record<string,string> = {laundry:laundryImage,kitchen:kitchenImage,toiletries:toiletriesImage,fragrance:fragranceImage};
 export const Route = createFileRoute("/")({
   loader:({context})=>context.queryClient.ensureQueryData(homeQuery),

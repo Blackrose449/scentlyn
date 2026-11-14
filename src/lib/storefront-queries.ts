@@ -2,9 +2,10 @@ import { queryOptions, type QueryClient } from "@tanstack/react-query";
 import { getStorefrontShell, getProductPage, getRelatedProducts, type StoreProduct, type StoreSettings, type StoreCategory } from "./storefront.functions";
 import { productIdFromSlug } from "./storefront";
 import { findCatalogueProduct } from "./catalogue-cache";
+import { STOREFRONT_STALE_TIME } from "./storefront-cache-policy";
 
 export const shellQuery = (client: QueryClient) => queryOptions({
-  queryKey: ["storefront-shell"], queryFn: () => getStorefrontShell(), staleTime: 60_000,
+  queryKey: ["storefront-shell"], queryFn: () => getStorefrontShell(), staleTime: STOREFRONT_STALE_TIME,
   initialData: () => {
     const home = client.getQueryData<{ categories: StoreCategory[]; settings: StoreSettings }>(["storefront-home"]);
     return home ? { categories: home.categories, settings: home.settings } : undefined;
@@ -14,7 +15,7 @@ export const shellQuery = (client: QueryClient) => queryOptions({
 
 export const productQuery = (slug: string) => {
   const productId = productIdFromSlug(slug);
-  return queryOptions({ queryKey: ["product", productId], queryFn: () => productId ? getProductPage({ data: { productId } }) : Promise.resolve(null), staleTime: 60_000 });
+  return queryOptions({ queryKey: ["product", productId], queryFn: () => productId ? getProductPage({ data: { productId } }) : Promise.resolve(null), staleTime: STOREFRONT_STALE_TIME });
 };
 
 export function seedProductQuery(client: QueryClient, slug: string) {
@@ -29,4 +30,4 @@ export function seedProductQuery(client: QueryClient, slug: string) {
   if (found) client.setQueryData(["product", id], { product: found.product }, { updatedAt: found.updatedAt });
 }
 
-export const relatedQuery = (productId: string) => queryOptions({ queryKey: ["related-products", productId], queryFn: () => getRelatedProducts({ data: { productId } }), staleTime: 60_000 });
+export const relatedQuery = (productId: string) => queryOptions({ queryKey: ["related-products", productId], queryFn: () => getRelatedProducts({ data: { productId } }), staleTime: STOREFRONT_STALE_TIME });

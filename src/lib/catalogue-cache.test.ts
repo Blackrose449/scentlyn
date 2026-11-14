@@ -8,7 +8,10 @@ test("fresh catalogue product details are reusable without another blocking read
   assert.deepEqual(findCatalogueProduct([{ products: [product], updatedAt: 1000 }], "product-1", 2000), { product, updatedAt: 1000 });
 });
 test("old catalogue details are not reused for a newly opened product", () => {
-  assert.equal(findCatalogueProduct([{ products: [product], updatedAt: 1000 }], "product-1", 61000), undefined);
+  assert.equal(findCatalogueProduct([{ products: [product], updatedAt: 1000 }], "product-1", 301000), undefined);
+});
+test("catalogue details remain reusable on a revisit within five minutes", () => {
+  assert.deepEqual(findCatalogueProduct([{ products: [product], updatedAt: 1000 }], "product-1", 300999), { product, updatedAt: 1000 });
 });
 test("a product absent from the catalogue still needs its own read", () => {
   assert.equal(findCatalogueProduct([{ products: [product], updatedAt: 1000 }], "other", 2000), undefined);

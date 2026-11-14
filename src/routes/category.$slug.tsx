@@ -5,11 +5,12 @@ import { useEffect } from "react";
 import { EmptyProducts, ProductCard } from "@/components/storefront/product-card";
 import { Button } from "@/components/ui/button";
 import { getCategoryPage } from "@/lib/storefront.functions";
+import { STOREFRONT_STALE_TIME } from "@/lib/storefront-cache-policy";
 import { TypeFilter } from "@/components/storefront/type-filter";
 import { buildTypeGroups, rememberShopPage, typeName } from "@/lib/storefront";
 
 const searchSchema=z.object({category:z.string().optional(),subcategory:z.string().optional(),sort:z.enum(["featured","price-low","price-high","newest"]).catch("featured")});
-const categoryQuery=(slug:string)=>queryOptions({queryKey:["category",slug],queryFn:()=>getCategoryPage({data:{slug}}),staleTime:60_000});
+const categoryQuery=(slug:string)=>queryOptions({queryKey:["category",slug],queryFn:()=>getCategoryPage({data:{slug}}),staleTime:STOREFRONT_STALE_TIME});
 export const Route=createFileRoute("/category/$slug")({
   validateSearch:(search)=>searchSchema.parse(search),
   loader:({context,params})=>context.queryClient.ensureQueryData(categoryQuery(params.slug)),

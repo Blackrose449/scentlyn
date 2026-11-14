@@ -35,8 +35,7 @@ function ProductView({product}:{product:StoreProduct}){
   const multi=options.length>1;
   const [added,setAdded]=useState<string|null>(null);
   const [quantity,setQuantity]=useState(1);
-  // Always open a product at the top of the page (the previous page's scroll position used to carry over, then jump).
-  useEffect(()=>{window.scrollTo({top:0,left:0,behavior:"instant" as ScrollBehavior})},[product.id]);
+  // Router scroll restoration owns positioning; don't jump after content has painted.
   // Remember this shop page so "Continue shopping" can come back to it.
   useEffect(()=>{rememberShopPage({kind:"product",slug:productPath(product)})},[product.id,product.name]);
   const addOption=(option:Option|null,qty:number)=>{

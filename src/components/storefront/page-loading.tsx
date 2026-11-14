@@ -1,7 +1,7 @@
 /** Reserve page space while route data is pending so the footer cannot flash first. */
 export function PageLoading() {
   return (
-    <section aria-label="Loading page" aria-busy="true" className="min-h-screen bg-background">
+    <section aria-label="Loading page" aria-busy="true" className="h-screen min-h-[40rem] overflow-hidden bg-background">
       <div aria-hidden="true" className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
         <div className="max-w-xl space-y-6 motion-safe:animate-pulse">
           <div className="h-4 w-40 bg-muted" />

@@ -1,5 +1,9 @@
 # Current storefront refinements
 
+## Stable first-load content
+- [x] Ensure shared navigation and catalogue data are server-rendered, use five-minute public query freshness, and remove post-paint product scrolling; intent preload already enabled, cart storage already effect-only, no first-load opacity reveal found.
+- [x] Verify first-load visibility, fixed loading space, and cache reuse at 390/1280px; JavaScript-disabled HTML includes content, no disappear/reappear observed, no revisit reads, delayed navigation shows fixed skeleton, 17 tests pass.
+
 ## Form accessibility
 - [x] Add unique field IDs/names and matching labels across storefront and admin, including generated native controls.
 - [x] Verify checkout autofill and form controls in the browser without placing an order; storefront, cart and sign-in have no missing labels or duplicate IDs. Admin authenticated verification unavailable with external Supabase.
