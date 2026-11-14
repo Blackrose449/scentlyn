@@ -56,7 +56,7 @@ function ProductView({product}:{product:StoreProduct}){
         <p className="text-xs font-bold uppercase text-accent">{product.brand??product.category?.name??"Scentlyn pick"}</p>
         <h1 className="mt-1 break-words font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">{displayName}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{options.length} sizes available — compare and add the one you want.</p>
-        <p className="mt-2 text-lg font-bold">Main product price: {money(product.base_price)}</p>
+        <p className="mt-2 text-lg font-bold">{money(product.base_price)}</p>
       </header>
       <section className="mt-6" aria-label="Available sizes">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -67,7 +67,7 @@ function ProductView({product}:{product:StoreProduct}){
                 {out&&<span className="absolute left-2 top-2 bg-destructive/10 px-2 py-1 text-[10px] font-bold uppercase text-destructive">Out of stock</span>}
               </div>
               <div className="flex flex-1 flex-col px-1 pb-1 pt-3">
-                <h2 className="line-clamp-2 min-h-10 font-display text-xl font-semibold leading-5">{o.label}</h2>
+                {product.variants.length>=2&&<h2 className="line-clamp-2 min-h-10 font-display text-xl font-semibold leading-5">{o.label}</h2>}
                 <p className="mt-2 text-lg font-extrabold">{money(o.price)}</p>
                 <p className={`text-[11px] ${out?"text-destructive":"text-muted-foreground"}`}>{stockLabel(o.stock)}</p>
                 <Button className="mt-3 w-full" disabled={out} onClick={()=>addOption(o,1)}>{added===o.id?<><Check/>Added</>:out?"Out of stock":"Add to cart"}</Button>
@@ -80,8 +80,7 @@ function ProductView({product}:{product:StoreProduct}){
       <div className="min-w-0">
         <p className="text-xs font-bold uppercase text-accent">{product.brand??product.category?.name??"Scentlyn pick"}</p>
         <h1 className="mt-1 break-words font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">{displayName}</h1>
-        <p className="mt-2 text-2xl font-extrabold">Main product price: {money(product.base_price)}</p>
-        {single&&<p className="mt-1 text-sm font-semibold text-muted-foreground">{money(single.price)} for {single.label}</p>}
+        <p className="mt-2 text-2xl font-extrabold">{money(product.base_price)}</p>
         {single&&<p className={`mt-2 text-sm ${singleStock?"text-muted-foreground":"text-destructive"}`}>{stockLabel(single.stock)}</p>}
         <div className="mt-4 flex gap-3">
           <div className="grid h-11 grid-cols-3 border border-input bg-card"><Button variant="ghost" size="icon" onClick={()=>setQuantity(Math.max(1,quantity-1))} aria-label="Decrease quantity"><Minus/></Button><label htmlFor={`quantity-${product.id}`} className="sr-only">Quantity for {displayName}</label><Input id={`quantity-${product.id}`} name={`quantity-${product.id}`} type="number" inputMode="numeric" value={quantity} readOnly className="h-full w-10 rounded-none border-0 px-0 text-center font-bold shadow-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"/><Button variant="ghost" size="icon" onClick={()=>setQuantity(Math.min(single?Math.max(1,single.stock):50,quantity+1))} aria-label="Increase quantity"><Plus/></Button></div>
