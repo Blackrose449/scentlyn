@@ -3,7 +3,7 @@
 ## Consistent product-card navigation
 - [x] Diagnose Kitchen's differing action: the shared card offered direct cart addition only when no variants existed; remove that branch and link the whole card to the product page everywhere without changing styling.
 - [x] Audit Kitchen variant records: both requested products have no variants and zero product-level stock; report findings without inventing stock or changing catalogue data.
-- [ ] Verify Kitchen, other categories, homepage and recommendations navigate through the shared card; confirm product-page cart actions still work.
+- [x] Verify shared whole-card links in Kitchen, Laundry, Bathroom, All products and homepage; Fragrance has no published cards. Both Kitchen buttons and price areas open their product pages, product-page additions read back in cart, mobile has no overflow, six existing tests pass and build is OK; recommendations reuse the same component.
 
 ## Stable first-load content
 - [x] Ensure shared navigation and catalogue data are server-rendered, use five-minute public query freshness, and remove post-paint product scrolling; intent preload already enabled, cart storage already effect-only, no first-load opacity reveal found.
