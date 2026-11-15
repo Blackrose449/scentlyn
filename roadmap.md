@@ -1,5 +1,10 @@
 # Current storefront refinements
 
+## Consistent product-card navigation
+- [x] Diagnose Kitchen's differing action: the shared card offered direct cart addition only when no variants existed; remove that branch and link the whole card to the product page everywhere without changing styling.
+- [x] Audit Kitchen variant records: both requested products have no variants and zero product-level stock; report findings without inventing stock or changing catalogue data.
+- [ ] Verify Kitchen, other categories, homepage and recommendations navigate through the shared card; confirm product-page cart actions still work.
+
 ## Stable first-load content
 - [x] Ensure shared navigation and catalogue data are server-rendered, use five-minute public query freshness, and remove post-paint product scrolling; intent preload already enabled, cart storage already effect-only, no first-load opacity reveal found.
 - [x] Verify first-load visibility, fixed loading space, and cache reuse at 390/1280px; JavaScript-disabled HTML includes content, no disappear/reappear observed, no revisit reads, delayed navigation shows fixed skeleton, 17 tests pass.
