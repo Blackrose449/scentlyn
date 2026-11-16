@@ -11,7 +11,7 @@
 
 ## Architecture rules
 - All storefront listings reuse ProductCard as one whole-card product link without nested interactive controls; cart mutations belong on the product page so variant counts never change catalogue navigation.
-- Keep shared brand icons and WebSite identity in the root head, with page-specific sharing metadata on leaf routes so page previews never inherit the wrong image.
+- Keep shared brand icons and WebSite identity in the root head, with page-specific sharing metadata on leaf routes so page previews never inherit the wrong image. Generate all public icon sizes from the uploaded logo and version root icon URLs when replacing them to avoid stale browser icons.
 - Form controls use explicit IDs/names and associated labels; repeated editor fields use LabeledField with React useId so identifiers stay unique through SSR hydration. LabeledSwitch owns a labelled native checkbox; checkout uses native selects/radios to avoid unnamed hidden fields.
 - Public home/product/category queries and catalogue-row reuse share a five-minute freshness window; recommendations never block purchasing, while checkout validates live prices and stock.
 - Shared storefront navigation loads categories/contact settings in the root loader rather than after mount; fonts ship as local Latin variable assets to remove third-party stylesheet waits.

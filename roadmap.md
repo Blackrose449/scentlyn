@@ -1,5 +1,9 @@
 # Current storefront refinements
 
+## Site icon replacement
+- [ ] Regenerate every public icon from the uploaded logo, remove obsolete icons, and use only the requested versioned icon links; inspect sharing tags and any manifest.
+- [ ] Confirm the replacement favicon on https://www.scentlyn.co.ke/favicon.ico after Vercel deployment (requires deployment outside this preview).
+
 ## Consistent product-card navigation
 - [x] Diagnose Kitchen's differing action: the shared card offered direct cart addition only when no variants existed; remove that branch and link the whole card to the product page everywhere without changing styling.
 - [x] Audit Kitchen variant records: both requested products have no variants and zero product-level stock; report findings without inventing stock or changing catalogue data.
