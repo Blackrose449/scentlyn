@@ -1,5 +1,9 @@
 # Current storefront refinements
 
+## Site icon replacement
+- [x] Regenerate all five requested public icons from the uploaded logo, remove obsolete favicon.png/favicon.svg, and use exactly three versioned icon links; no index.html or manifest exists, and sharing tags contain Scentlyn imagery rather than Lovable branding. Verified links on home, cart, Kitchen and sign-in plus all served image sizes.
+- [x] Confirm https://www.scentlyn.co.ke/favicon.ico already serves the uploaded logo: its 48x48 ICO is byte-identical to the regenerated file. New versioned links and remaining icon files still require Vercel redeployment.
+
 ## Consistent product-card navigation
 - [x] Diagnose Kitchen's differing action: the shared card offered direct cart addition only when no variants existed; remove that branch and link the whole card to the product page everywhere without changing styling.
 - [x] Audit Kitchen variant records: both requested products have no variants and zero product-level stock; report findings without inventing stock or changing catalogue data.
