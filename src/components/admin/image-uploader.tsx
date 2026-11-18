@@ -51,7 +51,7 @@ function friendlyUploadError(error: unknown) {
 export async function uploadToBucket(original: File, folder: string) {
   const file = await compressImage(original);
   const path = `${folder}/${crypto.randomUUID()}.${extensionOf(file)}`;
-  const contentType = file.type || (/\.png$/i.test(file.name) ? "image/png" : /\.webp$/i.test(file.name) ? "image/webp" : "image/jpeg");
+  const contentType = (file.type && file.type !== "application/octet-stream" ? file.type : "") || (/\.mp4$/i.test(file.name) ? "video/mp4" : /\.webm$/i.test(file.name) ? "video/webm" : /\.png$/i.test(file.name) ? "image/png" : /\.webp$/i.test(file.name) ? "image/webp" : "image/jpeg");
   const upload = await supabase.storage.from(BUCKET).upload(path, file, {
     contentType,
     upsert: false,
@@ -192,9 +192,9 @@ export function MediaUploader({ url, type, onChange, folder = "campaigns", label
 
   async function handle(file: File | undefined) {
     if (!file) return;
-    const isVideo = file.type.startsWith("video/");
+    const isVideo = file.type.startsWith("video/") || /\.(mp4|webm)$/i.test(file.name);
     try {
-      if (!isVideo && !file.type.startsWith("image/")) throw new Error("Choose an image (JPG/PNG/WebP) or a video (MP4/WebM)");
+      if (!isVideo && !isImageFile(file)) throw new Error("Choose an image (JPG/PNG/WebP) or a video (MP4/WebM)");
       if (isVideo && file.size > MAX_VIDEO_MB * 1024 * 1024) throw new Error(`Video is too large — keep it under ${MAX_VIDEO_MB} MB (a 10–15 second clip works well)`);
       setBusy(true);
       onChange(await uploadToBucket(file, folder), isVideo ? "video" : "image");
@@ -210,7 +210,7 @@ export function MediaUploader({ url, type, onChange, folder = "campaigns", label
   return (
     <div className="space-y-2">
       <label htmlFor={inputId} className="sr-only">{label}</label>
-      <input id={inputId} name={inputId} ref={inputRef} type="file" accept="image/*,video/mp4,video/webm" className="sr-only" onChange={(e) => void handle(e.target.files?.[0])} />
+      <input id={inputId} name={inputId} ref={inputRef} type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif,video/mp4,video/webm,.mp4,.webm" className="sr-only" onChange={(e) => void handle(e.target.files?.[0])} />
       <div className="flex flex-wrap items-center gap-3">
         <Button type="button" variant="outline" disabled={busy} onClick={() => inputRef.current?.click()}>
           {busy ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
