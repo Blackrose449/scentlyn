@@ -240,7 +240,7 @@ function ProductFormPage() {
                 <option value="none">None</option>
                 <option value="best_seller">Best seller</option>
               </select>
-              <p className="text-xs text-muted-foreground">“Low stock” appears automatically when stock runs low.</p>
+              <p className="text-xs text-muted-foreground">Shoppers see “Out of stock” automatically when stock reaches 0.</p>
             </div>
             <div className="flex items-center justify-between gap-3 text-sm font-semibold">
               Featured product
