@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.create_checkout_order(text, text, text, uuid, text, text, text, jsonb);
