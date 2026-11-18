@@ -42,8 +42,7 @@ function CategoryPage(){
         <TypeFilter groups={groups} category={category} type={type} onChange={pick}/>
       </aside>
       <div className="min-w-0">
-        <div className="flex items-end justify-between gap-4">
-          <p className="text-sm text-muted-foreground">{products.length} {products.length===1?"product":"products"}</p>
+        <div className="flex items-end justify-end gap-4">
           <div className="w-40"><label htmlFor="product-sort" className="mb-1.5 block text-xs font-bold uppercase">Sort by</label><select id="product-sort" name="productSort" value={search.sort} onChange={(event)=>navigate({search:(prev)=>({...prev,sort:event.target.value as typeof search.sort})})} className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"><option value="featured">Featured</option><option value="price-low">Price: low</option><option value="price-high">Price: high</option><option value="newest">Newest</option></select></div>
         </div>
         <div className="mt-4">{products.length?<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{products.map((product)=><ProductCard key={product.id} product={product}/>)}</div>:<EmptyProducts title={type||category?"Nothing matches this filter":"This collection is arriving soon"} body={type||category?"Try another product type or view everything.":"Products will appear here as soon as they are published."}/>}</div>
