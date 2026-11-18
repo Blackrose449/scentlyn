@@ -34,11 +34,26 @@ async function compressImage(file: File): Promise<File> {
   }
 }
 
+const IMAGE_EXT = /\.(jpe?g|png|webp|gif|avif|heic|heif|bmp)$/i;
+// Some phones and file pickers send photos with no file type, so fall back to the file name.
+export function isImageFile(file: File) {
+  return file.type.startsWith("image/") || !file.type || IMAGE_EXT.test(file.name);
+}
+
+function friendlyUploadError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  if (/row-level security|unauthorized|403|jwt/i.test(message)) return "You need to be signed in as a shop admin to upload photos. Sign out and sign in again.";
+  if (/exceeded|too large|413|payload/i.test(message)) return "That photo is too large. Try a smaller photo.";
+  if (/failed to fetch|network/i.test(message)) return "Upload failed because the connection dropped. Check your internet and try again.";
+  return message || "Upload failed";
+}
+
 export async function uploadToBucket(original: File, folder: string) {
   const file = await compressImage(original);
   const path = `${folder}/${crypto.randomUUID()}.${extensionOf(file)}`;
+  const contentType = file.type || (/\.png$/i.test(file.name) ? "image/png" : /\.webp$/i.test(file.name) ? "image/webp" : "image/jpeg");
   const upload = await supabase.storage.from(BUCKET).upload(path, file, {
-    contentType: file.type || (file.name.toLowerCase().endsWith(".mp4") ? "video/mp4" : "image/jpeg"),
+    contentType,
     upsert: false,
   });
   if (upload.error) throw upload.error;
@@ -70,14 +85,14 @@ export function ImageUploader({ value, onChange, folder, multiple = true, label 
     const uploaded: UploadedImage[] = [];
     try {
       for (const file of list) {
-        if (!file.type.startsWith("image/")) throw new Error(`${file.name} is not an image`);
+        if (!isImageFile(file)) throw new Error(`${file.name} is not a photo. Use JPG, PNG or WebP.`);
         const url = await uploadToBucket(file, folder);
         uploaded.push({ id: null, url });
       }
       onChange(multiple ? [...value, ...uploaded] : uploaded);
       toast.success(uploaded.length > 1 ? `${uploaded.length} photos uploaded` : "Photo uploaded");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Upload failed");
+      toast.error(friendlyUploadError(error));
     } finally {
       setPending((current) => {
         current.forEach((item) => URL.revokeObjectURL(item.preview));
@@ -102,7 +117,7 @@ export function ImageUploader({ value, onChange, folder, multiple = true, label 
       <input id={inputId} name={inputId}
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
         multiple={multiple}
         className="sr-only"
         onChange={(event) => void handleFiles(event.target.files)}
@@ -185,7 +200,7 @@ export function MediaUploader({ url, type, onChange, folder = "campaigns", label
       onChange(await uploadToBucket(file, folder), isVideo ? "video" : "image");
       toast.success(isVideo ? "Video uploaded" : "Image uploaded");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Upload failed");
+      toast.error(friendlyUploadError(error));
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";
