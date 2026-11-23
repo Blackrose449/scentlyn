@@ -1,6 +1,7 @@
 # Current storefront refinements
 
 ## November 23 requested corrections
+- [x] Cross-site sweep: browser-tested live search/empty/clear on All products, Laundry, Kitchen, Bathroom and Fragrance. Read shared home/offer/recommendation cards, product options, cart persistence, checkout, saved-order display, product create/update validation and the latest checkout SQL; chosen variant IDs/prices flow through unchanged. Root icons/brand descriptions are shared; page-specific metadata remains intact. No further violations of the requested rules found; no settled orders, permissions or unrelated settings changed.
 - [x] Remove multi-option product summary price/text; verified chosen 40-sheet option at KSh 2,500 in cart after reload and checkout total KSh 2,600 with the current KSh 100 delivery fee at 390/1280px; single-product addition also passes.
 - [x] Fix live shop search and header search navigation; names, categories, description keywords, no results and clearing back to all 33 products pass on mobile/desktop, with no runtime errors.
 - [x] Apply exact site description and regenerate logo icons with v=3; verified all three metadata descriptions, footer text, three head links and 48/192/512/180px served icons. Live custom-domain favicon already shows the Scentlyn logo; new links need redeployment. No manifest or obsolete favicon.png/favicon.svg exists.
