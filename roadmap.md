@@ -1,5 +1,12 @@
 # Current storefront refinements
 
+## November 23 requested corrections
+- [x] Remove multi-option product summary price/text; verified chosen 40-sheet option at KSh 2,500 in cart after reload and checkout total KSh 2,600 with the current KSh 100 delivery fee at 390/1280px; single-product addition also passes.
+- [x] Fix live shop search and header search navigation; names, categories, description keywords, no results and clearing back to all 33 products pass on mobile/desktop, with no runtime errors.
+- [x] Apply exact site description and regenerate logo icons with v=3; verified all three metadata descriptions, footer text, three head links and 48/192/512/180px served icons. Live custom-domain favicon already shows the Scentlyn logo; new links need redeployment. No manifest or obsolete favicon.png/favicon.svg exists.
+- [x] Correct screenshot's missing size_label validation, preserving existing labels when older editors omit the field; 25 relevant tests pass and latest build is OK.
+- [ ] Verify an authenticated product save on the external admin site and publishing; no managed admin session is available and no separate publishing error was supplied.
+
 ## Site icon replacement
 - [x] Regenerate all five requested public icons from the uploaded logo, remove obsolete favicon.png/favicon.svg, and use exactly three versioned icon links; no index.html or manifest exists, and sharing tags contain Scentlyn imagery rather than Lovable branding. Verified links on home, cart, Kitchen and sign-in plus all served image sizes.
 - [x] Confirm https://www.scentlyn.co.ke/favicon.ico already serves the uploaded logo: its 48x48 ICO is byte-identical to the regenerated file. New versioned links and remaining icon files still require Vercel redeployment.

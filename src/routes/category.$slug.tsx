@@ -1,7 +1,9 @@
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { matchesProductSearch } from "@/lib/product-search";
 import { EmptyProducts, ProductCard } from "@/components/storefront/product-card";
 import { Button } from "@/components/ui/button";
 import { getCategoryPage } from "@/lib/storefront.functions";
@@ -9,7 +11,7 @@ import { STOREFRONT_STALE_TIME } from "@/lib/storefront-cache-policy";
 import { TypeFilter } from "@/components/storefront/type-filter";
 import { buildTypeGroups, rememberShopPage, typeName } from "@/lib/storefront";
 
-const searchSchema=z.object({category:z.string().optional(),subcategory:z.string().optional(),sort:z.enum(["featured","price-low","price-high","newest"]).catch("featured")});
+const searchSchema=z.object({category:z.string().optional(),subcategory:z.string().optional(),q:z.string().optional(),sort:z.enum(["featured","price-low","price-high","newest"]).catch("featured")});
 const categoryQuery=(slug:string)=>queryOptions({queryKey:["category",slug],queryFn:()=>getCategoryPage({data:{slug}}),staleTime:STOREFRONT_STALE_TIME});
 export const Route=createFileRoute("/category/$slug")({
   validateSearch:(search)=>searchSchema.parse(search),
@@ -20,6 +22,8 @@ export const Route=createFileRoute("/category/$slug")({
 function CategoryPage(){
   const {slug}=Route.useParams();const search=Route.useSearch();const navigate=Route.useNavigate();
   const {data}=useSuspenseQuery(categoryQuery(slug));
+  const [query, setQuery] = useState(search.q ?? "");
+  useEffect(() => { setQuery(search.q ?? ""); }, [slug, search.q]);
   // Remember this shop page so "Continue shopping" can come back to it.
   useEffect(()=>{rememberShopPage({kind:"category",slug,search:{sort:search.sort,...(search.category?{category:search.category}:{}),...(search.subcategory?{subcategory:search.subcategory}:{})}})},[slug,search.sort,search.category,search.subcategory]);
   if(!data)return <CategoryMessage title="Collection not found"/>;
@@ -29,7 +33,7 @@ function CategoryPage(){
   const type=typeName(search.subcategory,knownTypes)??undefined;
   const groups=buildTypeGroups(data.products,data.categories,data.types,isAll?undefined:slug);
   const catId=isAll?data.categories.find((c)=>c.slug===category)?.id:data.category.id;
-  let products=data.products.filter((p)=>(!category||p.category_slugs?.includes(category))&&(!type||(catId&&p.category_id===catId&&typeName(p.subcategory,knownTypes)===type)));
+  let products=data.products.filter((p)=>(!category||p.category_slugs?.includes(category))&&(!type||(catId&&p.category_id===catId&&typeName(p.subcategory,knownTypes)===type))&&matchesProductSearch(p,query,data.categories));
   products=[...products].sort((a,b)=>search.sort==="price-low"?a.base_price-b.base_price:search.sort==="price-high"?b.base_price-a.base_price:search.sort==="newest"?b.created_at.localeCompare(a.created_at):Number(b.is_featured)-Number(a.is_featured));
   const heading=isAll?(category?(data.categories.find((c)=>c.slug===category)?.name??data.category.name):data.category.name):data.category.name;
   const pick=(c?:string,t?:string)=>navigate({search:(prev)=>({...prev,category:isAll?c:undefined,subcategory:t})});
@@ -42,10 +46,11 @@ function CategoryPage(){
         <TypeFilter groups={groups} category={category} type={type} onChange={pick}/>
       </aside>
       <div className="min-w-0">
-        <div className="flex items-end justify-end gap-4">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0 flex-1 basis-48"><label htmlFor="shop-search" className="mb-1.5 block text-xs font-bold uppercase">Search products</label><Input id="shop-search" name="productSearch" type="search" autoFocus={search.q !== undefined} value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Search products" className="h-9" /></div>
           <div className="w-40"><label htmlFor="product-sort" className="mb-1.5 block text-xs font-bold uppercase">Sort by</label><select id="product-sort" name="productSort" value={search.sort} onChange={(event)=>navigate({search:(prev)=>({...prev,sort:event.target.value as typeof search.sort})})} className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"><option value="featured">Featured</option><option value="price-low">Price: low</option><option value="price-high">Price: high</option><option value="newest">Newest</option></select></div>
         </div>
-        <div className="mt-4">{products.length?<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{products.map((product)=><ProductCard key={product.id} product={product}/>)}</div>:<EmptyProducts title={type||category?"Nothing matches this filter":"This collection is arriving soon"} body={type||category?"Try another product type or view everything.":"Products will appear here as soon as they are published."}/>}</div>
+        <div className="mt-4" role="region" aria-label="Product results" aria-live="polite">{products.length?<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{products.map((product)=><ProductCard key={product.id} product={product}/>)}</div>:<EmptyProducts title={query.trim()?"No products found":type||category?"Nothing matches this filter":"This collection is arriving soon"} body={query.trim()?"Try another search.":type||category?"Try another product type or view everything.":"Products will appear here as soon as they are published."}/>}</div>
       </div>
     </div>
   </div>}

@@ -17,6 +17,7 @@ import { CartProvider } from "../lib/cart";
 import { StoreLayout } from "../components/storefront/store-shell";
 import { Toaster } from "../components/ui/sonner";
 import { shellQuery } from "../lib/storefront-queries";
+import { SITE_DESCRIPTION } from "../lib/site-identity";
 
 function NotFoundComponent() {
   return (
@@ -88,6 +89,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Scentlyn | Laundry & Household Essentials in Kenya" },
+      { name: "description", content: SITE_DESCRIPTION },
+      { property: "og:description", content: SITE_DESCRIPTION },
+      { name: "twitter:description", content: SITE_DESCRIPTION },
       { name: "author", content: "Scentlyn" },
       { name: "google-site-verification", content: "_218GAp_m_1MubO0mvLOGbJeg-NHxCdmS9ZJ6B81RPQ" },
       { property: "og:type", content: "website" },
@@ -99,9 +103,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico?v=2", sizes: "48x48" },
-      { rel: "icon", href: "/icon-192.png?v=2", type: "image/png", sizes: "192x192" },
-      { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=2" },
+      { rel: "icon", href: "/favicon.ico?v=3", sizes: "48x48" },
+      { rel: "icon", href: "/icon-192.png?v=3", type: "image/png", sizes: "192x192" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=3" },
     ],
     scripts: [{
       type: "application/ld+json",

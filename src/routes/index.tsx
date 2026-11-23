@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyProducts, ProductCard } from "@/components/storefront/product-card";
 import { getStorefrontHome } from "@/lib/storefront.functions";
 import { STOREFRONT_STALE_TIME } from "@/lib/storefront-cache-policy";
+import { SITE_DESCRIPTION } from "@/lib/site-identity";
 import { activeCategories, productPath, settingBoolean, settingList, settingText, type StoreCampaign } from "@/lib/storefront";
 
 const homeQuery = queryOptions({ queryKey:["storefront-home"], queryFn:()=>getStorefrontHome(), staleTime:STOREFRONT_STALE_TIME });
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/")({
   loader:({context})=>context.queryClient.ensureQueryData(homeQuery),
   head:({loaderData})=>{
     const title = "Scentlyn | Laundry & Household Essentials in Kenya";
-    const description = "Where freshness meets quality. Shop laundry, kitchen, bathroom and fragrance essentials delivered across Kenya.";
+    const description = SITE_DESCRIPTION;
     const hero = settingText(loaderData?.settings??{}, "hero_image_url", heroFallback);
     const shareImage = hero.startsWith("https://") ? hero : "https://www.scentlyn.co.ke/scentlyn-home.jpg";
     return {meta:[{title},{name:"description",content:description},{property:"og:title",content:title},{property:"og:description",content:description},{property:"og:type",content:"website"},{property:"og:image",content:shareImage},{name:"twitter:image",content:shareImage},{name:"twitter:card",content:"summary_large_image"}],links:[{rel:"canonical",href:"/"},{rel:"preload",as:"image",href:hero,fetchPriority:"high"}],scripts:[{type:"application/ld+json",children:JSON.stringify({"@context":"https://schema.org","@type":"Organization",name:"Scentlyn",url:"https://www.scentlyn.co.ke/",logo:"https://www.scentlyn.co.ke/icon-192.png"})}]};

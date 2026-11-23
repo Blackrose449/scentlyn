@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database, Json } from "@/integrations/supabase/types";
+import { optionalSizePayload, productInput } from "./product-input";
 
 type RpcCaller = (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
 
@@ -211,35 +212,6 @@ export const getProductForm = createServerFn({ method: "GET" })
     return { product, categories: categoriesResult.data ?? [] };
   });
 
-const productInput = z.object({
-  id: z.string().uuid().nullable(),
-  name: z.string().min(2).max(160),
-  brand: z.string().max(80).nullable(),
-  category_id: z.string().uuid().nullable(),
-  extra_category_ids: z.array(z.string().uuid()).max(12).default([]),
-  subcategory: z.string().max(80).nullable(),
-  description: z.string().max(4000).nullable(),
-  size_label: z.string().max(40).nullable(),
-  base_price: z.number().min(0).max(10_000_000),
-  stock_quantity: z.number().int().min(0).max(1_000_000),
-  is_featured: z.boolean(),
-  is_best_seller: z.boolean(),
-  status: z.enum(["active", "draft"]),
-  variants: z
-    .array(
-      z.object({
-        id: z.string().uuid().nullable(),
-        variant_type: z.string().min(1).max(60),
-        variant_value: z.string().min(1).max(80),
-        price_override: z.number().min(0).max(10_000_000).nullable(),
-        stock_quantity: z.number().int().min(0).max(1_000_000),
-        sku: z.string().max(60).nullable(),
-      }),
-    )
-    .max(60),
-  images: z.array(z.object({ id: z.string().uuid().nullable(), url: z.string().min(5).max(2000) })).max(12),
-});
-
 export const saveProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => productInput.parse(data))
@@ -254,7 +226,7 @@ export const saveProduct = createServerFn({ method: "POST" })
       extra_category_ids: data.extra_category_ids.filter((id) => id !== data.category_id),
       subcategory: data.subcategory,
       description: data.description,
-      size_label: data.size_label,
+      ...optionalSizePayload(data),
       base_price: data.base_price,
       stock_quantity: data.stock_quantity,
       is_featured: data.is_featured,

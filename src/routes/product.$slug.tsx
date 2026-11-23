@@ -54,8 +54,6 @@ function ProductView({product}:{product:StoreProduct}){
       <header className="mt-4 max-w-3xl">
         <p className="text-xs font-bold uppercase text-accent">{product.brand??product.category?.name??"Scentlyn pick"}</p>
         <h1 className="mt-1 break-words font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">{displayName}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{options.length} sizes available — compare and add the one you want.</p>
-        <p className="mt-2 text-lg font-bold">{money(product.base_price)}</p>
       </header>
       <section className="mt-6" aria-label="Available sizes">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">

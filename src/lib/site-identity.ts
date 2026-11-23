@@ -1,0 +1,1 @@
+export const SITE_DESCRIPTION = "Welcome to Scentlyn online. Discover quality laundry, kitchen, bathroom and home fragrance essentials. Explore Scentlyn for everything your home needs.";

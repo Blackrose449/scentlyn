@@ -10,6 +10,8 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Catalogue search filters already-loaded rows client-side across names, category placements, descriptions and variant labels so typing never waits for network reads.
+- Product-save validation accepts omitted optional size labels from older editors without clearing existing values; keep its browser-safe schema independently regression-tested.
 - All storefront listings reuse ProductCard as one whole-card product link without nested interactive controls; cart mutations belong on the product page so variant counts never change catalogue navigation.
 - Keep shared brand icons and WebSite identity in the root head, with page-specific sharing metadata on leaf routes so page previews never inherit the wrong image. Generate all public icon sizes from the uploaded logo and version root icon URLs when replacing them to avoid stale browser icons.
 - Form controls use explicit IDs/names and associated labels; repeated editor fields use LabeledField with React useId so identifiers stay unique through SSR hydration. LabeledSwitch owns a labelled native checkbox; checkout uses native selects/radios to avoid unnamed hidden fields.
