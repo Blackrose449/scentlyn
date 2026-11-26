@@ -11,8 +11,10 @@ import { buildOptions, baseInfo, stockLabel, type Option } from "@/components/st
 import { money, productPath, rememberShopPage } from "@/lib/storefront";
 import { BackToShopLink } from "@/components/storefront/back-to-shop";
 import { useCart } from "@/lib/cart";
+import { productWhatsappMessage, setWhatsappTopic } from "@/lib/whatsapp";
 
 export const Route=createFileRoute("/product/$slug")({
+  validateSearch:(search:{variant?:unknown}):{variant?:string}=>typeof search.variant==="string"?{variant:search.variant}:{},
   loader:({context,params})=>{
     seedProductQuery(context.queryClient, params.slug);
     return context.queryClient.ensureQueryData(productQuery(params.slug));
@@ -35,6 +37,9 @@ function ProductView({product}:{product:StoreProduct}){
   const multi=options.length>1;
   const [added,setAdded]=useState<string|null>(null);
   const [quantity,setQuantity]=useState(1);
+  const {variant:wanted}=Route.useSearch();
+  const picked=options.find((o)=>o.variantId===wanted)??null;
+  useEffect(()=>{setWhatsappTopic(productWhatsappMessage(displayName,picked?.label??(options.length===1?options[0]?.label:null)));return ()=>setWhatsappTopic(null);},[displayName,picked?.label,options]);
   // Router scroll restoration owns positioning; don't jump after content has painted.
   // Remember this shop page so "Continue shopping" can come back to it.
   useEffect(()=>{rememberShopPage({kind:"product",slug:productPath(product)})},[product.id,product.name]);
@@ -57,11 +62,12 @@ function ProductView({product}:{product:StoreProduct}){
       </header>
       <section className="mt-6" aria-label="Available sizes">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {options.map((o)=>{const out=o.stock<=0;
-            return <article key={o.id} className="flex min-w-0 flex-col bg-card p-2.5 shadow-sm transition-shadow hover:shadow-md">
+          {(picked?[picked,...options.filter((o)=>o.id!==picked.id)]:options).map((o)=>{const out=o.stock<=0;
+            const isPick=picked?.id===o.id;
+            return <article key={o.id} aria-current={isPick?"true":undefined} className={`flex min-w-0 flex-col bg-card p-2.5 shadow-sm transition-shadow hover:shadow-md ${isPick?"ring-2 ring-accent":""}`}>
               <div className="relative aspect-[4/3] overflow-hidden bg-product">
                 {o.image?<img src={o.image} alt={`${displayName} ${o.label}`} loading="lazy" className="h-full w-full object-contain p-3"/>:<div className="grid h-full place-items-center text-muted-foreground"><ImageIcon className="size-10"/></div>}
-                {out&&<span className="absolute left-2 top-2 bg-destructive/10 px-2 py-1 text-[10px] font-bold uppercase text-destructive">Out of stock</span>}
+                {isPick&&<span className="absolute right-2 top-2 bg-accent px-2 py-1 text-[10px] font-bold uppercase text-accent-foreground">Your match</span>}{out&&<span className="absolute left-2 top-2 bg-destructive/10 px-2 py-1 text-[10px] font-bold uppercase text-destructive">Out of stock</span>}
               </div>
               <div className="flex flex-1 flex-col px-1 pb-1 pt-3">
                 {product.variants.length>=2&&<h2 className="line-clamp-2 min-h-10 font-display text-xl font-semibold leading-5">{o.label}</h2>}

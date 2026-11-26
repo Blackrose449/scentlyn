@@ -14,6 +14,7 @@ import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as OurStoryRouteImport } from './routes/our-story'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
@@ -55,6 +56,11 @@ const CartRoute = CartRouteImport.update({
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OurStoryRoute = OurStoryRouteImport.update({
+  id: '/our-story',
+  path: '/our-story',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/our-story': typeof OurStoryRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -173,6 +180,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/our-story': typeof OurStoryRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -198,6 +206,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/our-story': typeof OurStoryRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/checkout'
+    | '/our-story'
     | '/sitemap.xml'
     | '/admin/categories'
     | '/admin/settings'
@@ -247,6 +257,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/checkout'
+    | '/our-story'
     | '/sitemap.xml'
     | '/admin/categories'
     | '/admin/settings'
@@ -271,6 +282,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/checkout'
+    | '/our-story'
     | '/sitemap.xml'
     | '/admin/categories'
     | '/admin/settings'
@@ -296,6 +308,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
+  OurStoryRoute: typeof OurStoryRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   CategorySlugRoute: typeof CategorySlugRoute
   OffersIdRoute: typeof OffersIdRoute
@@ -341,6 +354,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/our-story': {
+      id: '/our-story'
+      path: '/our-story'
+      fullPath: '/our-story'
+      preLoaderRoute: typeof OurStoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -499,6 +519,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
+  OurStoryRoute: OurStoryRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   CategorySlugRoute: CategorySlugRoute,
   OffersIdRoute: OffersIdRoute,

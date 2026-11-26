@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { matchesProductSearch } from "@/lib/product-search";
+import { scoreProductSearch } from "@/lib/product-search";
 import { EmptyProducts, ProductCard } from "@/components/storefront/product-card";
 import { Button } from "@/components/ui/button";
 import { getCategoryPage } from "@/lib/storefront.functions";
@@ -24,6 +24,8 @@ function CategoryPage(){
   const {data}=useSuspenseQuery(categoryQuery(slug));
   const [query, setQuery] = useState(search.q ?? "");
   useEffect(() => { setQuery(search.q ?? ""); }, [slug, search.q]);
+  const [debounced, setDebounced] = useState(query);
+  useEffect(() => { const t = window.setTimeout(() => setDebounced(query), 200); return () => window.clearTimeout(t); }, [query]);
   // Remember this shop page so "Continue shopping" can come back to it.
   useEffect(()=>{rememberShopPage({kind:"category",slug,search:{sort:search.sort,...(search.category?{category:search.category}:{}),...(search.subcategory?{subcategory:search.subcategory}:{})}})},[slug,search.sort,search.category,search.subcategory]);
   if(!data)return <CategoryMessage title="Collection not found"/>;
@@ -33,8 +35,11 @@ function CategoryPage(){
   const type=typeName(search.subcategory,knownTypes)??undefined;
   const groups=buildTypeGroups(data.products,data.categories,data.types,isAll?undefined:slug);
   const catId=isAll?data.categories.find((c)=>c.slug===category)?.id:data.category.id;
-  let products=data.products.filter((p)=>(!category||p.category_slugs?.includes(category))&&(!type||(catId&&p.category_id===catId&&typeName(p.subcategory,knownTypes)===type))&&matchesProductSearch(p,query,data.categories));
-  products=[...products].sort((a,b)=>search.sort==="price-low"?a.base_price-b.base_price:search.sort==="price-high"?b.base_price-a.base_price:search.sort==="newest"?b.created_at.localeCompare(a.created_at):Number(b.is_featured)-Number(a.is_featured));
+  let products=data.products.filter((p)=>(!category||p.category_slugs?.includes(category))&&(!type||(catId&&p.category_id===catId&&typeName(p.subcategory,knownTypes)===type)));
+  const matches=new Map(products.map((p)=>[p.id,scoreProductSearch(p,debounced,data.categories)] as const));
+  products=products.filter((p)=>matches.get(p.id));
+  const searching=debounced.trim().length>0;
+  products=[...products].sort((a,b)=>searching&&search.sort==="featured"?(matches.get(b.id)?.score??0)-(matches.get(a.id)?.score??0):search.sort==="price-low"?a.base_price-b.base_price:search.sort==="price-high"?b.base_price-a.base_price:search.sort==="newest"?b.created_at.localeCompare(a.created_at):Number(b.is_featured)-Number(a.is_featured));
   const heading=isAll?(category?(data.categories.find((c)=>c.slug===category)?.name??data.category.name):data.category.name):data.category.name;
   const pick=(c?:string,t?:string)=>navigate({search:(prev)=>({...prev,category:isAll?c:undefined,subcategory:t})});
   return <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -50,7 +55,7 @@ function CategoryPage(){
           <div className="min-w-0 flex-1 basis-48"><label htmlFor="shop-search" className="mb-1.5 block text-xs font-bold uppercase">Search products</label><Input id="shop-search" name="productSearch" type="search" autoFocus={search.q !== undefined} value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Search products" className="h-9" /></div>
           <div className="w-40"><label htmlFor="product-sort" className="mb-1.5 block text-xs font-bold uppercase">Sort by</label><select id="product-sort" name="productSort" value={search.sort} onChange={(event)=>navigate({search:(prev)=>({...prev,sort:event.target.value as typeof search.sort})})} className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"><option value="featured">Featured</option><option value="price-low">Price: low</option><option value="price-high">Price: high</option><option value="newest">Newest</option></select></div>
         </div>
-        <div className="mt-4" role="region" aria-label="Product results" aria-live="polite">{products.length?<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{products.map((product)=><ProductCard key={product.id} product={product}/>)}</div>:<EmptyProducts title={query.trim()?"No products found":type||category?"Nothing matches this filter":"This collection is arriving soon"} body={query.trim()?"Try another search.":type||category?"Try another product type or view everything.":"Products will appear here as soon as they are published."}/>}</div>
+        <div className="mt-4" role="region" aria-label="Product results" aria-live="polite">{products.length?<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{products.map((product)=><ProductCard key={product.id} product={product} match={searching?matches.get(product.id)??null:null}/>)}</div>:<EmptyProducts title={searching?"No products found":type||category?"Nothing matches this filter":"This collection is arriving soon"} body={searching?"Try fewer words, or browse a category from the list. You can also message us on WhatsApp and we'll help you find it.":type||category?"Try another product type or view everything.":"Products will appear here as soon as they are published."}/>}</div>
       </div>
     </div>
   </div>}

@@ -82,3 +82,8 @@
 - [x] Overview, Orders (status + mark paid), Products (variants, photo upload, archive), Customers
 - [x] Settings: homepage, categories, delivery zones, store info (live on storefront)
 - [ ] Owner creates account at /auth and claims admin (needs the client)
+
+## Search, story, WhatsApp
+- [x] Smarter search with size/variant matching and variant deep links
+- [x] Our Story section + page
+- [x] Floating WhatsApp button

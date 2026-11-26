@@ -30,3 +30,5 @@
 - Online payment methods share a server-only Pesapal initiation helper so checkout and retries use the same provider and verified IPN path; legacy Till orders retain their receipt flow.
 - Guest order reads and mutations require an HttpOnly browser cookie matching the saved checkout key; an order ID alone is never authorization.
 - Preserve checkout metadata across payment changes; callbacks must match the stored tracking ID, merchant reference, exact amount and currency, and must not downgrade paid or fulfilled orders.
+- Shop search ranks with scoreProductSearch (unit-normalised tokens, light typo tolerance); results deep-link with ?variant= so the product page highlights the matched option.
+- WhatsApp links come only from src/lib/whatsapp.ts; product pages publish their topic to the floating button through its small store so the number/message logic exists once.
