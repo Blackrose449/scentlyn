@@ -47,12 +47,12 @@ function CategoryPage(){
     <h1 className="mt-4 font-display text-5xl font-semibold sm:text-6xl">{type??heading}</h1>
     <div className="mt-8 grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
       <aside className="min-w-0 lg:sticky lg:top-4 lg:self-start">
+        <div className="mb-6"><label htmlFor="shop-search" className="mb-1.5 block text-xs font-bold uppercase">Search products</label><Input id="shop-search" name="productSearch" type="search" autoFocus={search.q !== undefined} value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Search products" className="h-9" /></div>
         <p className="mb-3 text-xs font-bold uppercase">Shop by type</p>
         <TypeFilter groups={groups} category={category} type={type} onChange={pick}/>
       </aside>
       <div className="min-w-0">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="min-w-0 flex-1 basis-48"><label htmlFor="shop-search" className="mb-1.5 block text-xs font-bold uppercase">Search products</label><Input id="shop-search" name="productSearch" type="search" autoFocus={search.q !== undefined} value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Search products" className="h-9" /></div>
+        <div className="flex flex-wrap items-end justify-end gap-4">
           <div className="w-40"><label htmlFor="product-sort" className="mb-1.5 block text-xs font-bold uppercase">Sort by</label><select id="product-sort" name="productSort" value={search.sort} onChange={(event)=>navigate({search:(prev)=>({...prev,sort:event.target.value as typeof search.sort})})} className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"><option value="featured">Featured</option><option value="price-low">Price: low</option><option value="price-high">Price: high</option><option value="newest">Newest</option></select></div>
         </div>
         <div className="mt-4" role="region" aria-label="Product results" aria-live="polite">{products.length?<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{products.map((product)=><ProductCard key={product.id} product={product} match={searching?matches.get(product.id)??null:null}/>)}</div>:<EmptyProducts title={searching?"No products found":type||category?"Nothing matches this filter":"This collection is arriving soon"} body={searching?"Try fewer words, or browse a category from the list. You can also message us on WhatsApp and we'll help you find it.":type||category?"Try another product type or view everything.":"Products will appear here as soon as they are published."}/>}</div>
