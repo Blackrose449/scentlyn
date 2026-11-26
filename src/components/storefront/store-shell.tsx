@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, Search, UserRound, Truck, ShieldCheck, CreditCard, Instagram, Facebook, MessageCircle, X } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { shellQuery } from "@/lib/storefront-queries";
 import { activeCategories, FALLBACK_CATEGORIES, settingText, type CategoryLink } from "@/lib/storefront";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
 import cartIconUrl from "@/assets/scentlyn-cart-icon.webp";
 import { SITE_DESCRIPTION } from "@/lib/site-identity";
-import { whatsappLink } from "@/lib/whatsapp";
+import { openWhatsApp, whatsappLink } from "@/lib/whatsapp";
 import { FloatingWhatsApp } from "@/components/storefront/whatsapp-button";
 const cartIcon = { url: cartIconUrl };
 
@@ -67,15 +67,15 @@ export function StoreFooter() {
   const cats: CategoryLink[] = data?.categories?.length ? activeCategories(data.categories).map((c)=>({slug:c.slug,name:c.name})) : FALLBACK_CATEGORIES;
   const phone = settingText(settings,"store_phone"); const whatsapp = settingText(settings,"store_whatsapp");
   const hours = settingText(settings,"store_hours"); const email = settingText(settings,"store_email"); const address = settingText(settings,"store_address");
-  const socials = [
+  const socials: { href: string; label: string; node: ReactNode; open?: () => void }[] = [
     { href: settingText(settings,"social_instagram"), label:"Instagram", node:<Instagram/> },
     { href: settingText(settings,"social_tiktok"), label:"TikTok", node:<span className="font-bold">TikTok</span> },
     { href: settingText(settings,"social_facebook"), label:"Facebook", node:<Facebook/> },
-    { href: whatsapp ? whatsappLink(whatsapp) : "", label:"WhatsApp", node:<MessageCircle/> },
+    { href: whatsapp ? whatsappLink(whatsapp) : "", label:"WhatsApp", node:<MessageCircle/>, open: () => openWhatsApp(whatsapp) },
   ];
   return <footer className="bg-primary text-primary-foreground">
     <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.5fr]">
-      <div><div className="font-display text-5xl font-semibold">Scentlyn</div><p className="mt-3 max-w-xs text-sm text-primary-foreground/75">{SITE_DESCRIPTION}</p><div className="mt-5 flex items-center gap-3">{socials.map((s)=> s.href ? <a key={s.label} href={s.href} target="_blank" rel="noreferrer" aria-label={s.label} className="hover:text-accent">{s.node}</a> : <span key={s.label} aria-label={s.label} className="opacity-60">{s.node}</span>)}</div></div>
+      <div><div className="font-display text-5xl font-semibold">Scentlyn</div><p className="mt-3 max-w-xs text-sm text-primary-foreground/75">{SITE_DESCRIPTION}</p><div className="mt-5 flex items-center gap-3">{socials.map((s)=> s.href ? <a key={s.label} href={s.href} target="_blank" rel="noreferrer" aria-label={s.label} onClick={s.open ? (event) => { event.preventDefault(); s.open?.(); } : undefined} className="hover:text-accent">{s.node}</a> : <span key={s.label} aria-label={s.label} className="opacity-60">{s.node}</span>)}</div></div>
       <FooterLinks title="Shop" links={cats}/>
       <div><h3 className="font-bold">Help</h3><ul className="mt-3 space-y-2 text-sm text-primary-foreground/75"><li>Track order</li><li>FAQs</li><li>Shipping & delivery</li><li>Returns</li></ul></div>
       <div><h3 className="font-bold">About</h3><ul className="mt-3 space-y-2 text-sm text-primary-foreground/75"><li><Link to="/our-story" className="hover:text-primary-foreground">Our story</Link></li>{phone && <li><a href={`tel:${phone}`}>{phone}</a></li>}{email && <li><a href={`mailto:${email}`}>{email}</a></li>}{hours && <li>{hours}</li>}{address && <li>{address}</li>}</ul></div>

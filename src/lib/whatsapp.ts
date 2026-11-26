@@ -11,6 +11,16 @@ export function productWhatsappMessage(name: string, variant?: string | null): s
   return `Hello Scentlyn, I'd like to ask about ${name}${variant ? ` (${variant})` : ""}.`;
 }
 
+/**
+ * Opens the chat in the shopper's own tab. A new tab is deliberately not used:
+ * TikTok/Instagram in-app browsers block pop-ups, so a new tab can mean nothing
+ * happens at all, and a blocked pop-up leaves the shopper stuck on the shop.
+ */
+export function openWhatsApp(raw: string, message?: string): void {
+  if (typeof window === "undefined") return;
+  window.location.href = whatsappLink(raw, message);
+}
+
 // Product pages share what the shopper is viewing with the floating chat button.
 let current: string | null = null;
 const listeners = new Set<() => void>();

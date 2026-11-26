@@ -32,3 +32,4 @@
 - Preserve checkout metadata across payment changes; callbacks must match the stored tracking ID, merchant reference, exact amount and currency, and must not downgrade paid or fulfilled orders.
 - Shop search ranks with scoreProductSearch (unit-normalised tokens, light typo tolerance); results deep-link with ?variant= so the product page highlights the matched option.
 - WhatsApp links come only from src/lib/whatsapp.ts; product pages publish their topic to the floating button through its small store so the number/message logic exists once.
+- WhatsApp chats open through openWhatsApp in the shopper's own tab, never window.open or target=_blank: in-app browsers (TikTok/Instagram) block pop-ups, so a new tab can mean the press does nothing.
