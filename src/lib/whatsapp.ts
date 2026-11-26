@@ -6,19 +6,27 @@ export function whatsappLink(raw: string, message?: string): string {
   const base = `https://wa.me/${whatsappNumber(raw)}`;
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;
 }
+export function whatsappAppLink(raw: string, message?: string): string {
+  const base = `whatsapp://send?phone=${whatsappNumber(raw)}`;
+  return message ? `${base}&text=${encodeURIComponent(message)}` : base;
+}
 export const DEFAULT_WHATSAPP_MESSAGE = "Hello Scentlyn, I'd like to ask about your products.";
 export function productWhatsappMessage(name: string, variant?: string | null): string {
   return `Hello Scentlyn, I'd like to ask about ${name}${variant ? ` (${variant})` : ""}.`;
 }
 
 /**
- * Opens the chat in the shopper's own tab. A new tab is deliberately not used:
- * TikTok/Instagram in-app browsers block pop-ups, so a new tab can mean nothing
- * happens at all, and a blocked pop-up leaves the shopper stuck on the shop.
+ * Phones use WhatsApp's native chat link, skipping its web landing page.
+ * Desktop keeps the web link, which can hand off to the app or WhatsApp Web.
+ * A new tab is deliberately not used: in-app browsers often block pop-ups.
  */
 export function openWhatsApp(raw: string, message?: string): void {
   if (typeof window === "undefined") return;
-  window.location.href = whatsappLink(raw, message);
+  const userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent;
+  const touchPoints = typeof navigator === "undefined" ? 0 : navigator.maxTouchPoints;
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(userAgent)
+    || (/Macintosh/i.test(userAgent) && touchPoints > 1);
+  window.location.href = isMobile ? whatsappAppLink(raw, message) : whatsappLink(raw, message);
 }
 
 // Product pages share what the shopper is viewing with the floating chat button.
